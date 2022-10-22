@@ -1,0 +1,151 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'kr.entree.spigradle' version '2.4.2'
+}
+
+group 'net.fantasyrealms'
+version '1.0.0-SNAPSHOT-' + getGitHash()
+
+compileJava.options.encoding = 'UTF-8'
+
+String getGitHash() {
+    def output = new ByteArrayOutputStream()
+    exec {
+        standardOutput = output
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    }
+    return output.toString().trim()
+}
+
+compileJava {
+    sourceCompatibility = JavaLanguageVersion.of(17)
+    targetCompatibility = JavaLanguageVersion.of(17)
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = "javac"
+}
+
+repositories {
+    mavenCentral()
+
+    // Spigot repository
+    maven {
+        name = 'Spigot'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+
+    // Added md5's repository to add the missing BungeeCord-Chat api
+    maven {
+        name = 'BungeeCord-Chat'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+
+    // PlaceholderAPI
+    maven {
+        name = "PlaceholderAPI"
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+
+    maven {
+        name = "sonatype-oss-snapshots1"
+        url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+    }
+
+    maven { url = "https://repo.fantasyrealms.net/releases" }
+    maven { url = 'https://jitpack.io' }
+    maven { url = 'https://repo.jaims.dev/repository/maven-public/' }
+}
+
+ext {
+    //Define one of the supported mc versions
+    mcVersion = '1.19'
+    libsPackage = group + ".fantasynpc.libs."
+}
+
+dependencies {
+    //Adds the spigot api to your plugin
+    compileOnly "org.spigotmc:spigot-api:${mcVersion}-R0.1-SNAPSHOT"
+
+    // Other dependencies
+    compileOnly 'me.clip:placeholderapi:2.11.1'
+    implementation 'org.bstats:bstats-bukkit:3.0.0'
+    implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0'
+    implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
+    implementation('com.github.cryptomorin:XSeries:9.1.0') { transitive = false }
+    implementation 'com.github.unldenis:Hologram-Lib:master-SNAPSHOT'
+    implementation 'com.github.Revxrsal.Lamp:common:3.0.71'
+    implementation 'com.github.Revxrsal.Lamp:bukkit:3.0.71'
+    implementation "cc.happyareabean:MojangAPI:2.0.0"
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    relocate('net.kyori', libsPackage + "kyori")
+    relocate('de.exlll.configlib', libsPackage + "configlib")
+    relocate("org.snakeyaml", libsPackage + "yaml")
+    relocate('org.bstats', libsPackage + "bstats")
+    relocate("com.cryptomorin.xseries", libsPackage + "xseries")
+    relocate("com.github.juliarn", libsPackage + "npclib")
+}
+
+spigot {
+    // The 'name' and 'version' will be set to project.version and project.name,
+    // But we may set those manually.
+    apiVersion '1.13'
+    excludeLibraries = ['*']
+    depends 'ProtocolLib'
+    softDepends 'PlaceholderAPI'
+    authors 'HappyAreaBean'
+}
+
+tasks.processResources {
+    expand "pluginVersion": project.version
+}
+
+task cleanPlugin() {
+    group 'deploy'
+    description 'Cleans the plugin in the working directory up'
+
+    try {
+        delete 'working/plugins/' + shadowJar.getArchiveFileName().get() + '.jar'
+    } catch (ignored) {
+
+    }
+}
+
+task deploy(type: Copy, dependsOn: ['cleanPlugin', 'jar']) {
+    group 'deploy'
+    description 'Exports you plugin to the plugin directory in your test server'
+
+    from shadowJar
+    into 'working/plugins'
+}
+
+task setupServer {
+    group 'server'
+    description 'Downloads the server jar'
+
+    def server = new File('working/server.jar')
+
+    if (server.exists()) {
+        return
+    }
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+
+task relocateShadowJar(type: ConfigureShadowRelocation) {
+    target = tasks.shadowJar
+    prefix = project.group + ".fantasynpc.libs" // Default value is "shadow"
+
+}
+
+tasks.shadowJar.dependsOn tasks.relocateShadowJar

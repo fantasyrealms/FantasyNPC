@@ -1,0 +1,10 @@
+main: net.fantasyrealms.fantasynpc.FantasyNPC
+name: FantasyNPC
+version: 1.0.0-SNAPSHOT
+authors:
+ - HappyAreaBean
+api-version: 1.13
+depend:
+ - ProtocolLib
+softdepend:
+ - PlaceholderAPI
