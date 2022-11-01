@@ -9,6 +9,10 @@ import lombok.Setter;
 @Getter @Setter
 public class FConfig {
 
+	@Comment("Debug mode? It will show more details on the console if enabled.")
+	private boolean debug = false;
+
+	@Comment("All the settings for NPCs")
 	private NPC npc = new NPC();
 
 	@Configuration
@@ -24,6 +28,7 @@ public class FConfig {
 		private int tabListRemoveTicks = 60;
 	}
 
+	@Comment("Hologram settings for NPCs")
 	private Hologram hologram = new Hologram();
 
 	@Configuration
