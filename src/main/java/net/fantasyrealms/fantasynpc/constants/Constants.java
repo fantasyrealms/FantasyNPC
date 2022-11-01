@@ -21,4 +21,7 @@ public class Constants {
 			"");
 	public static Gson GSON = new Gson();
 	public static String VERSION = FantasyNPC.getInstance().getDescription().getVersion();
+
+	public static final String HELP_COMMAND_FORMAT = "/npc %s";
+	public static final String HELP_COMMAND_PAGE_TEXT = "Page %s";
 }
