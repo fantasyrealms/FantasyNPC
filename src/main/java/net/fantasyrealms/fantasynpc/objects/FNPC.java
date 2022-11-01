@@ -1,6 +1,7 @@
 package net.fantasyrealms.fantasynpc.objects;
 
 import com.github.juliarn.npc.NPC;
+import com.github.juliarn.npc.modifier.MetadataModifier;
 import com.github.juliarn.npc.profile.Profile;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.SerializeWith;
@@ -24,6 +25,7 @@ public class FNPC {
 	private FSkin skin;
 	@SerializeWith(serializer = LocationStringConverter.class)
 	private Location location;
+	private boolean lookAtPlayer;
 	private FHolo hologram;
 	private List<FAction> actions;
 
@@ -33,7 +35,25 @@ public class FNPC {
 		return new FNPC(profile.getName(), profile.getUniqueId(),
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
+				false,
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
+	}
+
+	public static NPC.Builder toNPC(FNPC npc) {
+		NPC.Builder npcBuilder = NPC.builder();
+
+		npcBuilder.location(npc.getLocation());
+		npcBuilder.lookAtPlayer(npc.isLookAtPlayer());
+		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> npcSpawn.metadata()
+				.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer));
+
+		Profile profile = new Profile(npc.getUuid());
+		profile.setProperty(new Profile.Property("textures", npc.getSkin().getRaw(), npc.getSkin().getSignature()));
+		profile.setName(npc.getName());
+		profile.complete();
+
+		npcBuilder.profile(profile);
+		return npcBuilder;
 	}
 }
