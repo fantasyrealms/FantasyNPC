@@ -26,6 +26,7 @@ public class FNPC {
 	@SerializeWith(serializer = LocationStringConverter.class)
 	private Location location;
 	private boolean lookAtPlayer;
+	private boolean imitatePlayer;
 	private FHolo hologram;
 	private List<FAction> actions;
 
@@ -36,6 +37,7 @@ public class FNPC {
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
 				false,
+				false,
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
 	}
@@ -45,6 +47,7 @@ public class FNPC {
 
 		npcBuilder.location(npc.getLocation());
 		npcBuilder.lookAtPlayer(npc.isLookAtPlayer());
+		npcBuilder.imitatePlayer(npc.isImitatePlayer());
 		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> npcSpawn.metadata()
 				.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer));
 
