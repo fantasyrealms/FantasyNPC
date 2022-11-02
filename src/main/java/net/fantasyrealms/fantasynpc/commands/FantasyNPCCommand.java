@@ -23,6 +23,7 @@ import revxrsal.commands.help.CommandHelp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
 import static revxrsal.commands.util.Strings.colorize;
 
@@ -32,7 +33,7 @@ public class FantasyNPCCommand {
 	@Default
 	@Description("FantasyNPC commands list")
 	public void help(BukkitCommandActor actor, CommandHelp<String> helpEntries, @Default("1") int page) {
-		int slotPerPage = 7;
+		int slotPerPage = 5;
 		int maxPages = helpEntries.getPageSize(slotPerPage);
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
@@ -46,7 +47,7 @@ public class FantasyNPCCommand {
 						.hoverEvent(Component.text("Click to open wiki!"))));
 		list.add(LEGACY_SERIALIZER.deserialize(""));
 		list.addAll(helpEntries.paginate(page, slotPerPage).stream().map(LEGACY_SERIALIZER::deserialize).toList());
-		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages));
+		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages, HELP_COMMAND_FORMAT));
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.forEach(message -> actor.audience().sendMessage(message));
 	}
@@ -63,6 +64,22 @@ public class FantasyNPCCommand {
 		}
 	}
 
+	@Subcommand({"skin"})
+	@Description("Change NPC skin")
+	@Usage("[name]")
+	@AutoComplete("@npcNames *")
+	public void changeSkin(BukkitCommandActor actor, FNPC npc, String skin) {
+		NPCUtils.changeNPCSkin(npc, skin)
+				.whenComplete((result, throwable) -> {
+					if (throwable != null) {
+						actor.reply("&cAn error happened while deleting the NPC &f[%s]&c, please check console for more info!".formatted(npc.getName()));
+						throwable.printStackTrace();
+						return;
+					}
+					actor.reply("&aNPC &f[%s] &askin has been changed to &f%s&a!".formatted(npc.getName(), skin));
+				});
+	}
+
 	@Subcommand({"clear"})
 	@Description("Clear ALL the saved NPCs")
 	public void clearNPC(BukkitCommandActor actor) {
@@ -77,7 +94,7 @@ public class FantasyNPCCommand {
 		actor.requirePlayer();
 		Player player = actor.getAsPlayer();
 		player.sendMessage(colorize(name == null ? "&aCreating NPC..." : "&aCreating NPC with name [&f%s&a]...".formatted(name)));
-		NPCUtils.createNPC(player, name, skin)
+		NPCUtils.createNPC(player.getLocation(), name, skin)
 				.whenComplete((npc, throwable) -> {
 					if (throwable != null) {
 						return;
@@ -89,6 +106,5 @@ public class FantasyNPCCommand {
 					throwable.printStackTrace();
 					return null;
 				}));
-
 	}
 }

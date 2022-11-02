@@ -1,5 +1,6 @@
 package net.fantasyrealms.fantasynpc;
 
+import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
 import com.github.unldenis.hologram.HologramPool;
 import de.exlll.configlib.YamlConfigurations;
@@ -9,17 +10,18 @@ import net.fantasyrealms.fantasynpc.config.FConfig;
 import net.fantasyrealms.fantasynpc.config.NPCData;
 import net.fantasyrealms.fantasynpc.constants.ConfigProperties;
 import net.fantasyrealms.fantasynpc.constants.Constants;
+import net.fantasyrealms.fantasynpc.event.PlayerJoinListener;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 import revxrsal.commands.exception.CommandErrorException;
 
 import java.io.File;
-import java.util.stream.Collectors;
 
 public class FantasyNPC extends JavaPlugin {
 
@@ -46,16 +48,14 @@ public class FantasyNPC extends JavaPlugin {
 		getLogger().info("Loading commands...");
 		commandHandler = BukkitCommandHandler.create(this);
 
-		commandHandler.getAutoCompleter().registerParameterSuggestions(FNPC.class, (args, sender, command) -> npcData.getNpcs().values().stream().map(FNPC::getName).collect(Collectors.toUnmodifiableSet()));
-		commandHandler.getAutoCompleter().registerSuggestion("npcNames", (args, sender, command) -> {
-			return npcData.getNpcs().values().stream().map(FNPC::getName).collect(Collectors.toList());
-		});
+		commandHandler.getAutoCompleter().registerParameterSuggestions(FNPC.class, (args, sender, command) -> npcData.getNpcs().keySet());
+		commandHandler.getAutoCompleter().registerSuggestion("npcNames", (args, sender, command) -> npcData.getNpcs().keySet());
 		commandHandler.registerValueResolver(FNPC.class, context -> {
 			String value = context.pop();
-			if (npcData.getNpcs().values().stream().noneMatch(npc -> npc.getName().equalsIgnoreCase(value))) {
+			if (npcData.getNpcs().keySet().stream().noneMatch(npc -> npc.equalsIgnoreCase(value))) {
 				throw new CommandErrorException("Invalid NPC: &e" + value);
 			}
-			return npcData.getNpcs().values().stream().filter(npc -> npc.getName().equalsIgnoreCase(value)).findFirst().get();
+			return npcData.getNpcs().get(value);
 		});
 
 		commandHandler.setHelpWriter((command, actor) -> String.format("&8• &e/%s %s &7- &f%s", command.getPath().toRealString(), command.getUsage(), command.getDescription()));
@@ -74,8 +74,17 @@ public class FantasyNPC extends JavaPlugin {
 				.build();
 		FNPCManager.loadNPC(npcPool);
 
+		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
+
 
 		getLogger().info("Thank you for using FantasyNPC!");
+	}
+
+	@Override
+	public void onDisable() {
+		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
+			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+		}
 	}
 
 	public static void debug(String message) {

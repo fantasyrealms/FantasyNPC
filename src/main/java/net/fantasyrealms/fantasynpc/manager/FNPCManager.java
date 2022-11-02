@@ -4,8 +4,11 @@ import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
+import net.fantasyrealms.fantasynpc.util.PlayerUtils;
+import org.bukkit.Bukkit;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -23,7 +26,19 @@ public class FNPCManager {
 
 	public static void save(NPC npc) {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.put(npc.getProfile().getUniqueId().toString(), FNPC.fromNPC(npc));
+		newNPCs.put(npc.getProfile().getUniqueId().toString().replace("-", "").substring(0, 16), FNPC.fromNPC(npc));
+		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
+		ConfigManager.reloadNPCData();
+		updateAllPlayerScoreboard();
+	}
+
+	public static void update(NPC npc) {
+		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+		newNPCs.replace(npc.getProfile().getUniqueId().toString(), FNPC.fromNPC(npc));
+		FantasyNPC.getInstance().getNpcPool().getNpc(npc.getProfile().getUniqueId()).ifPresent((npcP) -> {
+			FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
+			FantasyNPC.debug("[UPDATE] Remove NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npc.getProfile().getName(), npc.getProfile().getUniqueId()));
+		});
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.reloadNPCData();
 	}
@@ -34,12 +49,13 @@ public class FNPCManager {
 		}
 		FantasyNPC.getInstance().getNpcData().setNpcs(Collections.emptyMap());
 		ConfigManager.reloadNPCData();
+		updateAllPlayerScoreboard();
 	}
 
 	public static boolean remove(String name) {
 		try {
-			Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-			for (Map.Entry<String, FNPC> npcEntry : newNPCs.entrySet()) {
+			Map<String, FNPC> newNPCs = new HashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+			for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 				String uuid = npcEntry.getKey();
 				FNPC npc = npcEntry.getValue();
 				if (npc.getName().equalsIgnoreCase(name)) {
@@ -52,11 +68,16 @@ public class FNPCManager {
 			}
 			FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 			ConfigManager.reloadNPCData();
+			updateAllPlayerScoreboard();
 			return true;
 		} catch (Throwable ex) {
 			FantasyNPC.getInstance().getLogger().warning("Error occurred when deleting NPC: [Please directly report this problem to author with stacktrace]");
 			ex.printStackTrace();
 			return false;
 		}
+	}
+
+	public static void updateAllPlayerScoreboard() {
+		Bukkit.getScheduler().runTask(FantasyNPC.getInstance(), () -> Bukkit.getOnlinePlayers().forEach(PlayerUtils::setNPCScoreboard));
 	}
 }

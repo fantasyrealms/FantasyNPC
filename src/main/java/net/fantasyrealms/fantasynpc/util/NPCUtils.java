@@ -5,48 +5,47 @@ import cc.happyareabean.mojangapi.MojangAPI;
 import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.modifier.MetadataModifier;
 import com.github.juliarn.npc.profile.Profile;
+import com.github.juliarn.npc.profile.ProfileUtils;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
+import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import revxrsal.commands.exception.CommandErrorException;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static revxrsal.commands.util.Strings.colorize;
-
-// TODO
-// Cleanup? maybe it can be better?
 public class NPCUtils {
 
-	public static CompletableFuture<Profile> createProfile(Player player, String name, String skin, SkinType skinType) {
+	public static CompletableFuture<Profile> createProfile(String name, String skin) {
+		return createProfile(null, name, skin);
+	}
 
-		Profile profile = new Profile(UUID.randomUUID());
+	public static CompletableFuture<Profile> createProfile(@Nullable UUID uuid, String name, String skin) {
+		SkinType skinType = skin == null ? SkinType.NONE : (skin.startsWith("m:") || skin.contains("minesk.in") ? SkinType.MINESKIN : SkinType.NORMAL);
+
+		Profile profile = new Profile(uuid != null ? uuid : UUID.randomUUID());
 		boolean nameExist = name != null && nameExists(name);
-		String uuidString = profile.getUniqueId().toString().substring(0, 5);
-		String nameResults = nameExist ? "%s_%s".formatted(name, uuidString) : (name != null ? name : "NPC_%s".formatted(uuidString));
+		String nameResults = name == null ? ProfileUtils.randomName() : name;
 
 		FantasyNPC.debug("Name exists: %s / Inputted Name: %s / Final Name: %s".formatted(nameExist, name, nameResults));
 
-		if (nameExist) {
-			player.sendMessage(colorize("&cThere already have the same NPC named &f%s&c!").formatted(name));
-			player.sendMessage(colorize("&aUsing random name instead: &f%s").formatted(nameResults));
-		}
-
 		profile.setName(nameResults);
 
-		if (skinType != SkinType.NONE) player.sendMessage(colorize("&7Fetching skin type %s: &f%s&7...").formatted(skinType.name().toLowerCase(), skin));
+		if (skinType != SkinType.NONE) FantasyNPC.debug("Fetching skin type %s: %s...".formatted(skinType.name().toLowerCase(), skin));
 		switch (skinType) {
 			case MINESKIN:
 				String skinStripped = MineSkinFetcher.removePrefix(skin.contains("minesk.in") ? MineSkinFetcher.stripURL(skin) : skin);
 				return MineSkinFetcher.fetchSkinFromUUID(UUID.fromString(MojangAPI.addDashes(skinStripped)))
 						.thenApplyAsync((textureProperty) -> {
 							if (textureProperty == null) {
-								player.sendMessage(colorize("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand."));
-								return profile;
+								throw new CommandErrorException("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand.");
 							}
 							profile.setProperty(textureProperty);
 							return profile;
@@ -61,8 +60,8 @@ public class NPCUtils {
 								throw new RuntimeException(e);
 							}
 						}).exceptionally((throwable) -> {
-							player.sendMessage(colorize("&cError while getting skin: %s: &f%s".formatted(skin, throwable.getMessage())));
-							player.sendMessage(colorize("&7Skipped skin changing..."));
+							FantasyNPC.debug("Error while getting skin: %s: %s".formatted(skin, throwable.getMessage()));
+							FantasyNPC.debug("Skipped skin changing...");
 							return null;
 						})
 						.thenApplyAsync((userProfile) -> {
@@ -85,11 +84,8 @@ public class NPCUtils {
 	/**
 	 * Creates a new NPC
 	 */
-	public static CompletableFuture<NPC> createNPC(Player player, String name, String skin) {
-		SkinType skinType = skin == null ? SkinType.NONE : (skin.startsWith("m:") || skin.contains("minesk.in") ? SkinType.MINESKIN : SkinType.NORMAL);
-		final Location location = player.getLocation();
-
-		return createProfile(player, name, skin, skinType).thenApply((profile) -> {
+	public static CompletableFuture<NPC> createNPC(Location location, String name, String skin) {
+		return createProfile(name, skin).thenApply((profile) -> {
 			NPC.Builder npcBuilder = NPC.builder();
 			npcBuilder.location(location);
 			npcBuilder.imitatePlayer(false);
@@ -100,6 +96,21 @@ public class NPCUtils {
 			npcBuilder.profile(profile);
 			return npcBuilder.build(FantasyNPC.getInstance().getNpcPool());
 		});
+	}
+
+	public static CompletableFuture<Boolean> changeNPCSkin(FNPC fNpc, String skin) {
+		return createProfile(fNpc.getUuid(), fNpc.getName(), skin)
+				.thenApplyAsync((profile) -> {
+					profile.complete();
+					FNPCManager.update(FNPC.toNPC(fNpc).profile(profile).build(FantasyNPC.getInstance().getNpcPool()));
+					return true;
+				});
+	}
+
+	public static FNPC findNPCByName(String name) {
+		return FantasyNPC.getInstance().getNpcData().getNpcs().values().stream()
+				.filter(npc -> npc.getName().equalsIgnoreCase(name))
+				.findFirst().orElse(null);
 	}
 
 	public static Set<String> getNPCNames() {

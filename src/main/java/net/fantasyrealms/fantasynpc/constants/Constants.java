@@ -23,5 +23,5 @@ public class Constants {
 	public static String VERSION = FantasyNPC.getInstance().getDescription().getVersion();
 
 	public static final String HELP_COMMAND_FORMAT = "/npc %s";
-	public static final String HELP_COMMAND_PAGE_TEXT = "Page %s";
+	public static final String PAGE_TEXT = "Page %s";
 }
