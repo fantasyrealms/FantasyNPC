@@ -62,6 +62,14 @@ public class FNPCManager {
 		updateAllPlayerScoreboard();
 	}
 
+	public static void reload(NPCPool npcPool) {
+		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
+			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+		}
+		ConfigManager.reloadNPCData();
+		loadNPC(npcPool);
+	}
+
 	public static boolean remove(String name) {
 		try {
 			Map<String, FNPC> newNPCs = new HashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());

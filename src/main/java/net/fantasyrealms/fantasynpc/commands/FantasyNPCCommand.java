@@ -1,6 +1,8 @@
 package net.fantasyrealms.fantasynpc.commands;
 
+import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.Constants;
+import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.NPCUtils;
@@ -87,6 +89,20 @@ public class FantasyNPCCommand {
 		actor.reply("&cAll the NPCs data has been cleared.");
 	}
 
+	@Subcommand({"reloadNPC"})
+	@Description("Reload NPC")
+	public void reloadNPC(BukkitCommandActor actor) {
+		FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+		actor.reply("&aAll the NPCs has been reloaded.");
+	}
+
+	@Subcommand({"reloadConfig"})
+	@Description("Reload Config")
+	public void reloadConfig(BukkitCommandActor actor) {
+		ConfigManager.reloadConfig();
+		actor.reply("&aFantasyNPC config has been reloaded.");
+	}
+	
 	@Subcommand({"create"})
 	@Description("Create a new npc")
 	@Usage("[name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
