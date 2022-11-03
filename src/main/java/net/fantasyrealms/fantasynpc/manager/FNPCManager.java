@@ -29,7 +29,7 @@ public class FNPCManager {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 		newNPCs.put(npc.getProfile().getUniqueId().toString().replace("-", "").substring(0, 16), FNPC.fromNPC(npc));
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
-		ConfigManager.reloadNPCData();
+		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
 	}
 
@@ -50,7 +50,7 @@ public class FNPCManager {
 			}
 		}
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
-		ConfigManager.reloadNPCData();
+		ConfigManager.saveNPCData();
 	}
 
 	public static void clear() {
@@ -58,7 +58,7 @@ public class FNPCManager {
 			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
 		}
 		FantasyNPC.getInstance().getNpcData().setNpcs(Collections.emptyMap());
-		ConfigManager.reloadNPCData();
+		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
 	}
 
@@ -77,7 +77,7 @@ public class FNPCManager {
 				}
 			}
 			FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
-			ConfigManager.reloadNPCData();
+			ConfigManager.saveNPCData();
 			updateAllPlayerScoreboard();
 			return true;
 		} catch (Throwable ex) {

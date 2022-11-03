@@ -24,4 +24,6 @@ public class Constants {
 
 	public static final String HELP_COMMAND_FORMAT = "/npc %s";
 	public static final String PAGE_TEXT = "Page %s";
+	public static final String CONFIG_FILE_NAME = "config.yml";
+	public static final String NPCDATA_FILE_NAME = "npcs.yml";
 }
