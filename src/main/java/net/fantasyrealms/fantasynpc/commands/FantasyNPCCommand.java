@@ -10,7 +10,9 @@ import net.fantasyrealms.fantasynpc.util.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.util.RGBLike;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
@@ -27,6 +29,7 @@ import java.util.List;
 
 import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
+import static net.kyori.adventure.text.Component.text;
 import static revxrsal.commands.util.Strings.colorize;
 
 @Command({"fantasynpc", "npc"})
@@ -41,12 +44,12 @@ public class FantasyNPCCommand {
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fPage &9(%s/%s)".formatted(Constants.VERSION, page, maxPages)));
 		list.add(LEGACY_SERIALIZER.deserialize("&fMade With &4❤ &fBy HappyAreaBean"));
-		list.add(Component.text("View more info on ")
-				.append(Component.text("Wiki")
+		list.add(text("View more info on ")
+				.append(text("Wiki")
 						.color(NamedTextColor.AQUA)
 						.decorate(TextDecoration.BOLD, TextDecoration.UNDERLINED)
 						.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://example.com"))
-						.hoverEvent(Component.text("Click to open wiki!"))));
+						.hoverEvent(text("Click to open wiki!"))));
 		list.add(LEGACY_SERIALIZER.deserialize(""));
 		list.addAll(helpEntries.paginate(page, slotPerPage).stream().map(LEGACY_SERIALIZER::deserialize).toList());
 		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages, HELP_COMMAND_FORMAT));
@@ -79,6 +82,11 @@ public class FantasyNPCCommand {
 						return;
 					}
 					actor.reply("&aNPC &f[%s] &askin has been changed to &f%s&a!".formatted(npc.getName(), skin));
+					actor.reply(text("▍ [Skin still not visible? Click here to reload all the NPCs.]")
+									.color(NamedTextColor.RED)
+									.decorate(TextDecoration.BOLD)
+									.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc reloadnpc"))
+									.hoverEvent(text("/npc reloadnpc").color(NamedTextColor.YELLOW)));
 				});
 	}
 
@@ -102,7 +110,7 @@ public class FantasyNPCCommand {
 		ConfigManager.reloadConfig();
 		actor.reply("&aFantasyNPC config has been reloaded.");
 	}
-	
+
 	@Subcommand({"create"})
 	@Description("Create a new npc")
 	@Usage("[name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
