@@ -9,9 +9,7 @@ import com.github.juliarn.npc.profile.ProfileUtils;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import revxrsal.commands.exception.CommandErrorException;
 
 import javax.annotation.Nullable;
@@ -102,7 +100,7 @@ public class NPCUtils {
 		return createProfile(fNpc.getUuid(), fNpc.getName(), skin)
 				.thenApplyAsync((profile) -> {
 					profile.complete();
-					FNPCManager.update(FNPC.toNPC(fNpc).profile(profile).build(FantasyNPC.getInstance().getNpcPool()));
+					FNPCManager.updateProfile(fNpc, profile);
 					return true;
 				});
 	}

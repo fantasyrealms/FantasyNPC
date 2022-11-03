@@ -2,6 +2,7 @@ package net.fantasyrealms.fantasynpc.manager;
 
 import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
+import com.github.juliarn.npc.profile.Profile;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
@@ -32,13 +33,22 @@ public class FNPCManager {
 		updateAllPlayerScoreboard();
 	}
 
-	public static void update(NPC npc) {
+	public static void updateProfile(FNPC fNpc, Profile profile) {
+		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.replace(npc.getProfile().getUniqueId().toString(), FNPC.fromNPC(npc));
-		FantasyNPC.getInstance().getNpcPool().getNpc(npc.getProfile().getUniqueId()).ifPresent((npcP) -> {
-			FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
-			FantasyNPC.debug("[UPDATE] Remove NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npc.getProfile().getName(), npc.getProfile().getUniqueId()));
+		NPC npc = FNPC.toNPC(fNpc).profile(profile).build(npcPool);
+
+		npcPool.getNpc(fNpc.getUuid()).ifPresent((npcP) -> {
+			npcPool.removeNPC(npcP.getEntityId());
+			FantasyNPC.debug("[NPC UPDATE] Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), fNpc.getName(), fNpc.getUuid()));
 		});
+
+		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
+			FNPC oldNPC = npcEntry.getValue();
+			if (oldNPC.getName().equalsIgnoreCase(fNpc.getName())) {
+				newNPCs.replace(npcEntry.getKey(), FNPC.fromNPC(npc));
+			}
+		}
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.reloadNPCData();
 	}
