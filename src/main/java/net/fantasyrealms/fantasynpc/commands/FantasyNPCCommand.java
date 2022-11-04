@@ -96,6 +96,15 @@ public class FantasyNPCCommand {
 		actor.reply("&cAll the NPCs data has been cleared.");
 	}
 
+	@Subcommand({"teleport"})
+	@Description("Teleport you to the NPC")
+	@Usage("[name]")
+	public void teleport(BukkitCommandActor actor, FNPC fNpc) {
+		actor.requirePlayer();
+		actor.getAsPlayer().teleport(fNpc.getLocation());
+		actor.reply("&aTeleported to &f%s &7[%s]".formatted(fNpc.getName(), Utils.pettyLocation(fNpc.getLocation())));
+	}
+
 	@Subcommand({"location"})
 	@Description("Change NPC location to your current location")
 	@Usage("[name]")
