@@ -70,7 +70,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"skin"})
 	@Description("Change NPC skin")
-	@Usage("[name]")
+	@Usage("[name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
 	@AutoComplete("@npcNames *")
 	public void changeSkin(BukkitCommandActor actor, FNPC npc, String skin) {
 		NPCUtils.changeNPCSkin(npc, skin)
