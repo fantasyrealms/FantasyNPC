@@ -2,9 +2,12 @@ package net.fantasyrealms.fantasynpc.constants;
 
 import com.google.gson.Gson;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
+import net.kyori.adventure.text.Component;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static net.fantasyrealms.fantasynpc.FantasyNPC.MINIMESSAGE;
 
 public class Constants {
 
@@ -21,6 +24,8 @@ public class Constants {
 			"");
 	public static Gson GSON = new Gson();
 	public static String VERSION = FantasyNPC.getInstance().getDescription().getVersion();
+
+	public static final Component HEADER = MINIMESSAGE.deserialize("<gradient:green:blue>－－－－－－－－－－－－－－－－－－－－－－－－</gradient>");
 
 	public static final String HELP_COMMAND_FORMAT = "/npc %s";
 	public static final String PAGE_TEXT = "Page %s";

@@ -11,6 +11,7 @@ import net.fantasyrealms.fantasynpc.util.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.AutoComplete;
@@ -26,9 +27,14 @@ import revxrsal.commands.help.CommandHelp;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.fantasyrealms.fantasynpc.FantasyNPC.MINIMESSAGE;
 import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
+import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.event.ClickEvent.openUrl;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
 import static revxrsal.commands.util.Strings.colorize;
 
 @Command({"fantasynpc", "npc"})
@@ -164,5 +170,22 @@ public class FantasyNPCCommand {
 					throwable.printStackTrace();
 					return null;
 				}));
+	}
+
+	@Subcommand({"about"})
+	@Description("Information about FantasyNPC :)")
+	public void about(BukkitCommandActor actor) {
+		actor.reply(Component.textOfChildren(
+				Constants.HEADER,
+				newline(),
+				MINIMESSAGE.deserialize("<b><gradient:#18f6c1:#ff579b>FantasyNPC - %s</gradient></b>".formatted(Constants.VERSION))
+						.clickEvent(openUrl("https://go.happyareabean/fantasynpc"))
+						.hoverEvent(MINIMESSAGE.deserialize("<rainbow>click me!")),
+				newline(),
+				text("By ", GRAY)
+						.append(text("HappyAreaBean", GREEN)),
+				newline(),
+				Constants.HEADER
+		));
 	}
 }
