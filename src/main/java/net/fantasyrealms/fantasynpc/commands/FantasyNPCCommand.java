@@ -2,6 +2,7 @@ package net.fantasyrealms.fantasynpc.commands;
 
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.Constants;
+import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
@@ -10,9 +11,7 @@ import net.fantasyrealms.fantasynpc.util.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.util.RGBLike;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
@@ -62,7 +61,7 @@ public class FantasyNPCCommand {
 	@Usage("[name]")
 	@AutoComplete("@npcNames *")
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc) {
-		if (FNPCManager.remove(npc.getName())) {
+		if (FNPCManager.removeAndClearData(npc.getName())) {
 			actor.reply("&aNPC &f[%s] &ahas been successfully deleted!".formatted(npc.getName()));
 		} else {
 			actor.reply("&cAn error happened while deleting the NPC &f[%s]&c, please check console for more info!".formatted(npc.getName()));
@@ -95,6 +94,22 @@ public class FantasyNPCCommand {
 	public void clearNPC(BukkitCommandActor actor) {
 		FNPCManager.clear();
 		actor.reply("&cAll the NPCs data has been cleared.");
+	}
+
+	@Subcommand({"lookAtPlayer"})
+	@Description("Toggles whether NPCs look at the player")
+	@Usage("[name]")
+	public void lookAtPlayer(BukkitCommandActor actor, FNPC fNpc) {
+		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.LOOK_AT_PLAYER);
+		actor.reply("&f%s %s".formatted(npc.getName(), npc.isLookAtPlayer() ? "&anow will look at the player!" : "&cnow will no longer look at the player."));
+	}
+
+	@Subcommand({"imitatePlayer"})
+	@Description("Toggles whether NPCs imitate the player")
+	@Usage("[name]")
+	public void imitatePlayer(BukkitCommandActor actor, FNPC fNpc) {
+		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.IMITATE_PLAYER);
+		actor.reply("&f%s %s".formatted(npc.getName(), npc.isImitatePlayer() ? "&anow will now imitate the player!" : "&cnow will no longer imitate the player."));
 	}
 
 	@Subcommand({"reloadNPC"})

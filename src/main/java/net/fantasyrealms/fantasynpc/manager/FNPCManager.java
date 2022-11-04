@@ -4,6 +4,7 @@ import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
 import com.github.juliarn.npc.profile.Profile;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
+import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import org.bukkit.Bukkit;
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class FNPCManager {
 
@@ -31,6 +33,37 @@ public class FNPCManager {
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
+	}
+
+	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {
+		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
+		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
+
+		switch(updateType) {
+			case LOOK_AT_PLAYER -> {
+				npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
+			}
+			case IMITATE_PLAYER -> {
+				npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
+			}
+		}
+
+		removeFromPool(fNpc.getUuid());
+		NPC npc = npcBuilder.build(npcPool);
+		FNPC newFNPC = FNPC.fromNPC(npc);
+
+		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
+			FNPC oldNPC = npcEntry.getValue();
+			if (oldNPC.getName().equalsIgnoreCase(fNpc.getName())) {
+				newNPCs.replace(npcEntry.getKey(), newFNPC);
+			}
+		}
+
+		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
+		ConfigManager.saveNPCData();
+
+		return newFNPC;
 	}
 
 	public static void updateProfile(FNPC fNpc, Profile profile) {
@@ -70,7 +103,14 @@ public class FNPCManager {
 		loadNPC(npcPool);
 	}
 
-	public static boolean remove(String name) {
+	public static void removeFromPool(UUID uuid) {
+		FantasyNPC.getInstance().getNpcPool().getNpc(uuid).ifPresent((npcP) -> {
+			FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
+			FantasyNPC.debug("Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npcP.getProfile().getName(), npcP.getProfile().getUniqueId()));
+		});
+	}
+
+	public static boolean removeAndClearData(String name) {
 		try {
 			Map<String, FNPC> newNPCs = new HashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 			for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {

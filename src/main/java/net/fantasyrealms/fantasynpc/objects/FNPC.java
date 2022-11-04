@@ -36,8 +36,8 @@ public class FNPC {
 		return new FNPC(profile.getName(), profile.getUniqueId(),
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
-				false,
-				false,
+				npc.isLookAtPlayer(),
+				npc.isImitatePlayer(),
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
 	}
