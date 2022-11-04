@@ -48,8 +48,11 @@ public class FNPC {
 		npcBuilder.location(npc.getLocation());
 		npcBuilder.lookAtPlayer(npc.isLookAtPlayer());
 		npcBuilder.imitatePlayer(npc.isImitatePlayer());
-		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> npcSpawn.metadata()
-				.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer));
+		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> {
+			npcSpawn.metadata()
+					.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer);
+			npcSpawn.rotation().queueRotate(npc.getLocation().getYaw(), npc.getLocation().getPitch()).send(viewPlayer);
+		});
 
 		Profile profile = new Profile(npc.getUuid());
 		profile.setProperty(new Profile.Property("textures", npc.getSkin().getRaw(), npc.getSkin().getSignature()));

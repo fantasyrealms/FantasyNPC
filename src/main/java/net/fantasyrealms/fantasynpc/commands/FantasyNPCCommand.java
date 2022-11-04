@@ -96,6 +96,16 @@ public class FantasyNPCCommand {
 		actor.reply("&cAll the NPCs data has been cleared.");
 	}
 
+	@Subcommand({"location"})
+	@Description("Change NPC location to your current location")
+	@Usage("[name]")
+	public void location(BukkitCommandActor actor, FNPC fNpc) {
+		actor.requirePlayer();
+		fNpc.setLocation(actor.getAsPlayer().getLocation());
+		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.LOCATION);
+		actor.reply("&aUpdated &f%s &alocation to &f%s".formatted(npc.getName(), Utils.pettyLocation(npc.getLocation())));
+	}
+
 	@Subcommand({"lookAtPlayer"})
 	@Description("Toggles whether NPCs look at the player")
 	@Usage("[name]")

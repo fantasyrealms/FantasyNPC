@@ -41,12 +41,9 @@ public class FNPCManager {
 		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
 
 		switch(updateType) {
-			case LOOK_AT_PLAYER -> {
-				npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
-			}
-			case IMITATE_PLAYER -> {
-				npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
-			}
+			case LOOK_AT_PLAYER -> npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
+			case IMITATE_PLAYER -> npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
+			case LOCATION -> npcBuilder.location(fNpc.getLocation());
 		}
 
 		removeFromPool(fNpc.getUuid());

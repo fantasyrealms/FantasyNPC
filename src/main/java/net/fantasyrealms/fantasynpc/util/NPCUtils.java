@@ -88,8 +88,12 @@ public class NPCUtils {
 			npcBuilder.location(location);
 			npcBuilder.imitatePlayer(false);
 			npcBuilder.lookAtPlayer(false);
-			npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> npcSpawn.metadata()
-					.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer));
+			npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> {
+				npcSpawn.metadata()
+						.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer);
+				npcSpawn.rotation()
+						.queueRotate(location.getYaw(), location.getPitch()).send(viewPlayer);
+			});
 			profile.complete();
 			npcBuilder.profile(profile);
 			return npcBuilder.build(FantasyNPC.getInstance().getNpcPool());
