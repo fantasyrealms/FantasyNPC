@@ -48,7 +48,7 @@ public class FNPCManager {
 
 		removeFromPool(fNpc.getUuid());
 		NPC npc = npcBuilder.build(npcPool);
-		FNPC newFNPC = FNPC.fromNPC(npc);
+		FNPC newFNPC = FNPC.fromExist(fNpc, npc);
 
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 			FNPC oldNPC = npcEntry.getValue();
@@ -76,7 +76,7 @@ public class FNPCManager {
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 			FNPC oldNPC = npcEntry.getValue();
 			if (oldNPC.getName().equalsIgnoreCase(fNpc.getName())) {
-				newNPCs.replace(npcEntry.getKey(), FNPC.fromNPC(npc));
+				newNPCs.replace(npcEntry.getKey(), FNPC.fromExist(fNpc, npc));
 			}
 		}
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);

@@ -30,6 +30,15 @@ public class FNPC {
 	private FHolo hologram;
 	private List<FAction> actions;
 
+	/**
+	 * Build a new FNPC object from NPC.
+	 * This normally use for creating new FNPC.
+	 * <br/>
+	 * <p>For NPC update converting check {@link FNPC#fromExist(FNPC, NPC)}</p>
+	 *
+	 * @param npc NPC object
+	 * @return an FNPC object filled without FHolo and FActions
+	 */
 	public static FNPC fromNPC(NPC npc) {
 		Profile profile = npc.getProfile();
 		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
@@ -42,6 +51,38 @@ public class FNPC {
 				Collections.emptyList());
 	}
 
+	/**
+	 * Build a new FNPC object from NPC and an existed FNPC object.
+	 * <br/>
+	 * While still keeping the exclusive setting in FNPC (if exist)
+	 * <br/>
+	 * <p>This normally use for updating an existed FNPC without losing data.</p>
+	 * <p>For NPC creating check {@link FNPC#fromNPC(NPC)}</p>
+	 *
+	 * @param fNpc an exist FNPC object for covert
+	 * @param npc new NPC object
+	 * @return A new FNPC
+	 */
+	public static FNPC fromExist(FNPC fNpc, NPC npc) {
+		Profile profile = npc.getProfile();
+		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
+		return new FNPC(profile.getName(), profile.getUniqueId(),
+				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
+				npc.getLocation(),
+				npc.isLookAtPlayer(),
+				npc.isImitatePlayer(),
+				fNpc.getHologram(),
+				fNpc.getActions());
+	}
+
+
+	/**
+	 * Return a new NPC Builder from FNPC
+	 * <p>This normally use for loading FNPCs to the NPCPool</p>
+	 *
+	 * @param npc an existed NPC object
+	 * @return A new NPC Builder
+	 */
 	public static NPC.Builder toNPC(FNPC npc) {
 		NPC.Builder npcBuilder = NPC.builder();
 
