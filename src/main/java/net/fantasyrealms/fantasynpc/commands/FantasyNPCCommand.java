@@ -65,7 +65,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"delete"})
 	@Description("Delete a npc using name")
-	@Usage("[name]")
+	@Usage("<npc>")
 	@AutoComplete("@npcNames *")
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc) {
 		if (FNPCManager.removeAndClearData(npc.getName())) {
@@ -77,7 +77,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"skin"})
 	@Description("Change NPC skin")
-	@Usage("[name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
+	@Usage("<npc> <ID/m:<mineskinUUID>/https://minesk.in/xxx>")
 	@AutoComplete("@npcNames *")
 	public void changeSkin(BukkitCommandActor actor, FNPC npc, String skin) {
 		NPCUtils.changeNPCSkin(npc, skin)
@@ -105,7 +105,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"teleport"})
 	@Description("Teleport you to the NPC")
-	@Usage("[name]")
+	@Usage("<npc>")
 	public void teleport(BukkitCommandActor actor, FNPC fNpc) {
 		actor.requirePlayer();
 		actor.getAsPlayer().teleport(fNpc.getLocation());
@@ -114,7 +114,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"location"})
 	@Description("Change NPC location to your current location")
-	@Usage("[name]")
+	@Usage("<npc>")
 	public void location(BukkitCommandActor actor, FNPC fNpc) {
 		actor.requirePlayer();
 		fNpc.setLocation(actor.getAsPlayer().getLocation());
@@ -124,7 +124,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"lookAtPlayer"})
 	@Description("Toggles whether NPCs look at the player")
-	@Usage("[name]")
+	@Usage("<npc>")
 	public void lookAtPlayer(BukkitCommandActor actor, FNPC fNpc) {
 		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.LOOK_AT_PLAYER);
 		actor.reply("&f%s %s".formatted(npc.getName(), npc.isLookAtPlayer() ? "&anow will look at the player!" : "&cnow will no longer look at the player."));
@@ -132,7 +132,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"imitatePlayer"})
 	@Description("Toggles whether NPCs imitate the player")
-	@Usage("[name]")
+	@Usage("<npc>")
 	public void imitatePlayer(BukkitCommandActor actor, FNPC fNpc) {
 		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.IMITATE_PLAYER);
 		actor.reply("&f%s %s".formatted(npc.getName(), npc.isImitatePlayer() ? "&anow will now imitate the player!" : "&cnow will no longer imitate the player."));
