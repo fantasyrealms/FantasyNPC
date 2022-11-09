@@ -10,6 +10,7 @@ import net.fantasyrealms.fantasynpc.config.FConfig;
 import net.fantasyrealms.fantasynpc.config.NPCData;
 import net.fantasyrealms.fantasynpc.constants.ConfigProperties;
 import net.fantasyrealms.fantasynpc.constants.Constants;
+import net.fantasyrealms.fantasynpc.event.NPCActionsListener;
 import net.fantasyrealms.fantasynpc.event.PlayerJoinListener;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
@@ -75,13 +76,16 @@ public class FantasyNPC extends JavaPlugin {
 		FNPCManager.loadNPC(npcPool);
 
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
+		Bukkit.getPluginManager().registerEvents(new NPCActionsListener(), this);
 
+		getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
 		getLogger().info("Thank you for using FantasyNPC!");
 	}
 
 	@Override
 	public void onDisable() {
+		getServer().getMessenger().unregisterOutgoingPluginChannel(this);
 		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
 			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
 		}

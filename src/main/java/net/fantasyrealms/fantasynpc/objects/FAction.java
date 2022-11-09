@@ -12,4 +12,8 @@ public class FAction {
 
 	private FActionType type;
 	private String execute;
+
+	public String toFancyString() {
+		return "%s [%s]".formatted(type, execute);
+	}
 }

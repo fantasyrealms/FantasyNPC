@@ -5,13 +5,14 @@ import net.fantasyrealms.fantasynpc.constants.Constants;
 import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
+import net.fantasyrealms.fantasynpc.objects.FAction;
+import net.fantasyrealms.fantasynpc.objects.FActionType;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.NPCUtils;
 import net.fantasyrealms.fantasynpc.util.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.AutoComplete;
@@ -31,10 +32,10 @@ import static net.fantasyrealms.fantasynpc.FantasyNPC.MINIMESSAGE;
 import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
 import static net.kyori.adventure.text.Component.newline;
+import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.event.ClickEvent.openUrl;
-import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
-import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
 import static revxrsal.commands.util.Strings.colorize;
 
 @Command({"fantasynpc", "npc"})
@@ -59,7 +60,7 @@ public class FantasyNPCCommand {
 		list.addAll(helpEntries.paginate(page, slotPerPage).stream().map(LEGACY_SERIALIZER::deserialize).toList());
 		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages, HELP_COMMAND_FORMAT));
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
-		list.forEach(message -> actor.audience().sendMessage(message));
+		list.forEach(actor::reply);
 	}
 
 	@Subcommand({"delete"})
@@ -172,18 +173,87 @@ public class FantasyNPCCommand {
 				}));
 	}
 
+	@Subcommand({"action add"})
+	@Description("Add a NPC action")
+	@Usage("<npc> <command/message/server> <value>")
+	public void actionAdd(BukkitCommandActor actor, FNPC fNpc, FActionType actionType, String execute) {
+		FAction action = new FAction(actionType, execute);
+		FNPCManager.addNPCActions(fNpc, action);
+		actor.reply(textOfChildren(
+				text("Actions "),
+				text(action.toFancyString(), NamedTextColor.WHITE),
+				text(" has been added to NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"action remove"})
+	@Description("Remove a NPC action")
+	@Usage("<npc> <action slot number> [show list (true/false)]")
+	public void actionRemove(BukkitCommandActor actor, FNPC fNpc, int actionSlotNumber, @Optional Boolean showList) {
+		FAction removedAction = FNPCManager.removeNPCAction(fNpc, actionSlotNumber);
+		if (removedAction == null) {
+			actor.reply("&cAction remove failed.");
+			return;
+		}
+		actor.reply(textOfChildren(
+				text("Actions "),
+				text("%s - %s".formatted(actionSlotNumber, removedAction.toFancyString()), NamedTextColor.WHITE),
+				text(" has been successfully removed!")
+		).color(NamedTextColor.RED));
+		if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
+	}
+
+	@Subcommand({"action list"})
+	@Description("List a NPC actions")
+	@Usage("<npc>")
+	public void actionList(BukkitCommandActor actor, FNPC fNpc) {
+		List<Component> list = new ArrayList<>();
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9%s &factions".formatted(Constants.VERSION, fNpc.getActions().size())));
+		if (fNpc.getActions().size() > 0) {
+			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
+			for (int i = 0; i < fNpc.getActions().size(); i++) {
+				FAction action = fNpc.getActions().get(i);
+				list.add(textOfChildren(
+						text("[X]", NamedTextColor.RED, TextDecoration.BOLD)
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc action remove %s %s true".formatted(fNpc.getKey(), i)))
+								.hoverEvent(text("Click here to delete action " + i, NamedTextColor.RED, TextDecoration.BOLD)),
+						text(" %s - %s".formatted(action.getType(), action.getExecute()), NamedTextColor.WHITE)
+								.hoverEvent(textOfChildren(
+										text("Type: ", NamedTextColor.GRAY),
+										text(action.getType().name(), NamedTextColor.WHITE),
+										newline(),
+										text("Execute: ", NamedTextColor.GRAY),
+										text(action.getExecute(), NamedTextColor.WHITE)
+								))
+				));
+			}
+		} else {
+			list.add(textOfChildren(
+					text("Actions list are empty.", NamedTextColor.YELLOW),
+					space(),
+					text("Click here to create some?", NamedTextColor.GOLD)
+							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc action add %s ".formatted(fNpc.getKey())))
+							.hoverEvent(text("Click here! :)", NamedTextColor.AQUA, TextDecoration.BOLD))
+			).decorate(TextDecoration.BOLD));
+		}
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.forEach(actor::reply);
+	}
+
 	@Subcommand({"about"})
 	@Description("Information about FantasyNPC :)")
 	public void about(BukkitCommandActor actor) {
-		actor.reply(Component.textOfChildren(
+		actor.reply(textOfChildren(
 				Constants.HEADER,
 				newline(),
 				MINIMESSAGE.deserialize("<b><gradient:#18f6c1:#ff579b>FantasyNPC - %s</gradient></b>".formatted(Constants.VERSION))
 						.clickEvent(openUrl("https://go.happyareabean/fantasynpc"))
 						.hoverEvent(MINIMESSAGE.deserialize("<rainbow>click me!")),
 				newline(),
-				text("By ", GRAY)
-						.append(text("HappyAreaBean", GREEN)),
+				text("By ", NamedTextColor.GRAY)
+						.append(text("HappyAreaBean", NamedTextColor.GREEN)),
 				newline(),
 				Constants.HEADER
 		));

@@ -1,5 +1,8 @@
 package net.fantasyrealms.fantasynpc.util;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import net.fantasyrealms.fantasynpc.FantasyNPC;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.NameTagVisibility;
@@ -18,6 +21,14 @@ public class PlayerUtils {
 		team.addEntry(player.getName());
 		NPCUtils.getNPCNames().forEach(team::addEntry);
 		player.setScoreboard(scoreboard);
+	}
+
+	public static void sendServer(Player player, String server) {
+		ByteArrayDataOutput out = ByteStreams.newDataOutput();
+		out.writeUTF("Connect");
+		out.writeUTF(server);
+
+		player.sendPluginMessage(FantasyNPC.getInstance(), "BungeeCord", out.toByteArray());
 	}
 
 }

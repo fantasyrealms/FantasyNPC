@@ -20,8 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class FNPC {
 
-	private String name;
 	private UUID uuid;
+	private String name;
 	private FSkin skin;
 	@SerializeWith(serializer = LocationStringConverter.class)
 	private Location location;
@@ -29,6 +29,14 @@ public class FNPC {
 	private boolean imitatePlayer;
 	private FHolo hologram;
 	private List<FAction> actions;
+
+	/**
+	 * Return the first 8 character in UUID (Which is saved as a key in NPCData)
+	 * @return the first 8 character in UUID
+	 */
+	public String getKey() {
+		return uuid.toString().replace("-", "").substring(0, 8);
+	}
 
 	/**
 	 * Build a new FNPC object from NPC.
@@ -42,7 +50,7 @@ public class FNPC {
 	public static FNPC fromNPC(NPC npc) {
 		Profile profile = npc.getProfile();
 		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
-		return new FNPC(profile.getName(), profile.getUniqueId(),
+		return new FNPC(profile.getUniqueId(), profile.getName(),
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
 				npc.isLookAtPlayer(),
@@ -66,7 +74,7 @@ public class FNPC {
 	public static FNPC fromExist(FNPC fNpc, NPC npc) {
 		Profile profile = npc.getProfile();
 		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
-		return new FNPC(profile.getName(), profile.getUniqueId(),
+		return new FNPC(profile.getUniqueId(), profile.getName(),
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
 				npc.isLookAtPlayer(),

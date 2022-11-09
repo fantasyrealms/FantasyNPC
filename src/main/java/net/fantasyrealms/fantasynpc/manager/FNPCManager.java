@@ -5,6 +5,7 @@ import com.github.juliarn.npc.NPCPool;
 import com.github.juliarn.npc.profile.Profile;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.UpdateType;
+import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import org.bukkit.Bukkit;
@@ -12,6 +13,7 @@ import org.bukkit.Bukkit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,10 +31,43 @@ public class FNPCManager {
 
 	public static void save(NPC npc) {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.put(npc.getProfile().getUniqueId().toString().replace("-", "").substring(0, 16), FNPC.fromNPC(npc));
+		newNPCs.put(npc.getProfile().getUniqueId().toString().replace("-", "").substring(0, 8), FNPC.fromNPC(npc));
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
+	}
+
+	public static void addNPCActions(FNPC fNpc, FAction action) {
+		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+		fNpc.getActions().add(action);
+
+		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
+			FNPC oldNPC = npcEntry.getValue();
+			if (oldNPC.getUuid() == fNpc.getUuid()) {
+				newNPCs.replace(npcEntry.getKey(), fNpc);
+			}
+		}
+
+		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
+		ConfigManager.saveNPCData();
+	}
+
+	public static FAction removeNPCAction(FNPC fNpc, int slot) {
+		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+		List<FAction> actions = fNpc.getActions();
+		if (slot > actions.size()) return null;
+		FAction removedAction = actions.remove(slot);
+
+		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
+			FNPC oldNPC = npcEntry.getValue();
+			if (oldNPC.getUuid() == fNpc.getUuid()) {
+				newNPCs.replace(npcEntry.getKey(), fNpc);
+			}
+		}
+
+		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
+		ConfigManager.saveNPCData();
+		return removedAction;
 	}
 
 	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {

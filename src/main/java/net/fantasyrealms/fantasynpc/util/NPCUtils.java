@@ -8,12 +8,15 @@ import com.github.juliarn.npc.profile.Profile;
 import com.github.juliarn.npc.profile.ProfileUtils;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
+import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import org.bukkit.Location;
 import revxrsal.commands.exception.CommandErrorException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -107,6 +110,15 @@ public class NPCUtils {
 					FNPCManager.updateProfile(fNpc, profile);
 					return true;
 				});
+	}
+
+	public static List<FAction> getNPCAction(NPC npc) {
+		for (FNPC npcD : FantasyNPC.getInstance().getNpcData().getNpcs().values()) {
+			if (npcD.getUuid() == npc.getProfile().getUniqueId()) {
+				return npcD.getActions();
+			}
+		}
+		return Collections.emptyList();
 	}
 
 	public static FNPC findNPCByName(String name) {
