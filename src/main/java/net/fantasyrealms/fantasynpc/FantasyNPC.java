@@ -32,7 +32,7 @@ public class FantasyNPC extends JavaPlugin {
 	@Getter private HologramPool hologramPool;
 	@Getter private FConfig pluginConfig;
 	@Getter private NPCData npcData;
-	@Getter private static BukkitAudiences ADVENTURE;
+	public static BukkitAudiences ADVENTURE;
 	public static final MiniMessage MINIMESSAGE = MiniMessage.miniMessage();
 
 	@Override
