@@ -107,7 +107,7 @@ spigot {
     apiVersion '1.13'
     excludeLibraries = ['*']
     depends 'ProtocolLib'
-    softDepends 'PlaceholderAPI'
+    softDepends 'PlaceholderAPI', 'DecentHolograms', 'Holograms', 'HolographicDisplays', 'CMI'
     authors 'HappyAreaBean'
 }
 

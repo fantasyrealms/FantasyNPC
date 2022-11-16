@@ -8,3 +8,7 @@ depend:
  - ProtocolLib
 softdepend:
  - PlaceholderAPI
+ - DecentHolograms
+ - Holograms
+ - HolographicDisplays
+ - CMI
