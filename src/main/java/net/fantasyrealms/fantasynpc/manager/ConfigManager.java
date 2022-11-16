@@ -24,8 +24,7 @@ public class ConfigManager {
 	}
 
 	public static void reloadNPCData() {
-		YamlConfigurations.load(new File(FantasyNPC.getInstance().getDataFolder(), NPCDATA_FILE_NAME).toPath(), NPCData.class, ConfigProperties.NPC_DATA);
-		update(NPCDATA_FILE_NAME, NPCData.class, ConfigProperties.NPC_DATA);
+		FantasyNPC.getInstance().setNpcData(update(NPCDATA_FILE_NAME, NPCData.class, ConfigProperties.NPC_DATA));
 	}
 
 	public static void reloadConfig() {
