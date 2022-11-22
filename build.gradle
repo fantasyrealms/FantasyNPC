@@ -73,8 +73,8 @@ dependencies {
     implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0'
     implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
     implementation('com.github.cryptomorin:XSeries:9.1.0') { transitive = false }
-    implementation 'com.github.Revxrsal.Lamp:common:3.0.71'
-    implementation 'com.github.Revxrsal.Lamp:bukkit:3.0.71'
+    implementation 'com.github.Revxrsal.Lamp:common:89ccf4bc52'
+    implementation 'com.github.Revxrsal.Lamp:bukkit:89ccf4bc52'
     implementation 'com.github.Chubbyduck1:HologramBridge:1.0.8'
     implementation "cc.happyareabean:MojangAPI:2.0.0"
 
