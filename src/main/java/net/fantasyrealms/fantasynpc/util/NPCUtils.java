@@ -131,6 +131,10 @@ public class NPCUtils {
 		return FantasyNPC.getInstance().getNpcData().getNpcs().values().stream().map(FNPC::getName).collect(Collectors.toUnmodifiableSet());
 	}
 
+	public static Set<FNPC> getNPCs() {
+		return FantasyNPC.getInstance().getNpcData().getNpcs().values().stream().collect(Collectors.toUnmodifiableSet());
+	}
+
 	public static boolean nameExists(String input) {
 		return getNPCNames().contains(input);
 	}

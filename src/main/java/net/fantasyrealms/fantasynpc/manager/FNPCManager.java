@@ -1,14 +1,20 @@
 package net.fantasyrealms.fantasynpc.manager;
 
+import com.cryptomorin.xseries.XMaterial;
 import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
 import com.github.juliarn.npc.profile.Profile;
+import gg.optimalgames.hologrambridge.HologramAPI;
+import gg.optimalgames.hologrambridge.hologram.Hologram;
+import lombok.Getter;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
+import net.fantasyrealms.fantasynpc.util.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,14 +25,36 @@ import java.util.UUID;
 
 public class FNPCManager {
 
+	@Getter
+	private static Map<UUID, Hologram> holograms = new HashMap<>();
+
 	public static void loadNPC(NPCPool npcPool) {
-		FantasyNPC.getInstance().getNpcData().getNpcs().forEach((uuid, npc) -> {
-			FantasyNPC.debug("Loading NPC: %s (%s)".formatted(npc.getName(), npc.getUuid()));
-			FNPC.toNPC(npc).build(npcPool);
-			npcPool.getNpc(npc.getUuid()).ifPresent((npcResult) -> {
-				FantasyNPC.debug("NPC [%s] loaded with Entity ID: %s".formatted(npc.getName(), npcResult.getEntityId()));
+		FantasyNPC.getInstance().getNpcData().getNpcs().forEach((key, npc) -> {
+			loadNPC(npc, npcPool);
+		});
+	}
+
+	public static NPC loadNPC(FNPC fNPC, NPCPool npcPool) {
+		FantasyNPC.debug("Loading NPC: %s (%s)".formatted(fNPC.getName(), fNPC.getUuid()));
+		NPC npc = FNPC.toNPC(fNPC).build(npcPool);
+		npcPool.getNpc(fNPC.getUuid()).ifPresent((npcResult) -> {
+			FantasyNPC.debug("NPC [%s] loaded with Entity ID: %s".formatted(fNPC.getName(), npcResult.getEntityId()));
+		});
+		if (FantasyNPC.getInstance().isHologramEnabled() && !fNPC.getHologram().getLines().isEmpty()) {
+			FantasyNPC.debug("Loading NPC Holograms: %s with %s line(s)".formatted(fNPC.getName(), fNPC.getHologram().getLines().size()));
+			Hologram holo = HologramAPI.getConnector().createHologram(fNPC.getLocation().clone().add(0, fNPC.getHologram().getYHeight(), 0));
+			fNPC.getHologram().getLines().forEach(l -> {
+				if (l.startsWith("ICON:")) {
+					ItemStack it = XMaterial.matchXMaterial(l.replace("ICON:", "")).orElse(XMaterial.BARRIER).parseItem();
+					holo.appendItemLine(it);
+					return;
+				}
+				holo.appendTextLine(l);
 			});
- 		});
+			holograms.put(fNPC.getUuid(), holo);
+			FantasyNPC.debug("NPC [%s] Hologram loaded: %s line(s) | %s".formatted(fNPC.getName(), holo.size(), Utils.pettyLocation(holo.getLocation())));
+		}
+		return npc;
 	}
 
 	public static void save(NPC npc) {
@@ -38,56 +66,33 @@ public class FNPCManager {
 	}
 
 	public static void addNPCActions(FNPC fNpc, FAction action) {
-		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 		fNpc.getActions().add(action);
-
-		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
-			FNPC oldNPC = npcEntry.getValue();
-			if (oldNPC.getUuid() == fNpc.getUuid()) {
-				newNPCs.replace(npcEntry.getKey(), fNpc);
-			}
-		}
-
-		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
-		ConfigManager.saveNPCData();
+		updateNPC(fNpc);
 	}
 
 	public static FAction removeNPCAction(FNPC fNpc, int slot) {
-		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 		List<FAction> actions = fNpc.getActions();
 		if (slot > actions.size()) return null;
 		FAction removedAction = actions.remove(slot);
 
-		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
-			FNPC oldNPC = npcEntry.getValue();
-			if (oldNPC.getUuid() == fNpc.getUuid()) {
-				newNPCs.replace(npcEntry.getKey(), fNpc);
-			}
-		}
-
-		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
-		ConfigManager.saveNPCData();
+		updateNPC(fNpc);
 		return removedAction;
 	}
 
-	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {
+	public static FNPC updateNPC(FNPC fNpc) {
 		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
-
-		switch(updateType) {
-			case LOOK_AT_PLAYER -> npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
-			case IMITATE_PLAYER -> npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
-			case LOCATION -> npcBuilder.location(fNpc.getLocation());
-		}
 
 		removeFromPool(fNpc.getUuid());
-		NPC npc = npcBuilder.build(npcPool);
+		removeHolograms(fNpc.getUuid());
+		updateAllPlayerScoreboard();
+
+		NPC npc = loadNPC(fNpc, npcPool);
 		FNPC newFNPC = FNPC.fromExist(fNpc, npc);
 
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 			FNPC oldNPC = npcEntry.getValue();
-			if (oldNPC.getName().equalsIgnoreCase(fNpc.getName())) {
+			if (oldNPC.getUuid() == newFNPC.getUuid()) {
 				newNPCs.replace(npcEntry.getKey(), newFNPC);
 			}
 		}
@@ -96,6 +101,19 @@ public class FNPCManager {
 		ConfigManager.saveNPCData();
 
 		return newFNPC;
+	}
+
+	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {
+		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
+
+		switch(updateType) {
+			case LOOK_AT_PLAYER -> npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
+			case IMITATE_PLAYER -> npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
+			case LOCATION -> npcBuilder.location(fNpc.getLocation());
+			case NAME_TAG -> fNpc.setShowNameTag(!fNpc.isShowNameTag());
+		}
+
+		return updateNPC(fNpc);
 	}
 
 	public static void updateProfile(FNPC fNpc, Profile profile) {
@@ -122,6 +140,8 @@ public class FNPCManager {
 		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
 			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
 		}
+		holograms.values().forEach(Hologram::delete);
+		holograms.clear();
 		FantasyNPC.getInstance().getNpcData().setNpcs(Collections.emptyMap());
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
@@ -131,8 +151,32 @@ public class FNPCManager {
 		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
 			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
 		}
+		holograms.values().forEach(Hologram::delete);
+		holograms.clear();
 		ConfigManager.reloadNPCData();
 		loadNPC(npcPool);
+	}
+
+	public static void disable(NPCPool npcPool) {
+		try {
+			for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
+				FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+			}
+		} catch (Throwable ignored) {
+		}
+		holograms.values().forEach(Hologram::delete);
+		holograms.clear();
+	}
+
+	/**
+	 * Remove hologram from NPC uuid
+	 * @param uuid The NPC UUID
+	 */
+	public static void removeHolograms(UUID uuid) {
+		Hologram holo = holograms.remove(uuid);
+		if (holo != null) {
+			holo.delete();
+		}
 	}
 
 	public static void removeFromPool(UUID uuid) {

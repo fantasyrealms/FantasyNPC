@@ -7,6 +7,7 @@ import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FActionType;
+import net.fantasyrealms.fantasynpc.objects.FHolo;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.NPCUtils;
 import net.fantasyrealms.fantasynpc.util.Utils;
@@ -19,6 +20,7 @@ import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Description;
+import revxrsal.commands.annotation.Named;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.annotation.Usage;
@@ -29,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static net.fantasyrealms.fantasynpc.FantasyNPC.MINIMESSAGE;
-import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.space;
@@ -44,23 +45,7 @@ public class FantasyNPCCommand {
 	@Default
 	@Description("FantasyNPC commands list")
 	public void help(BukkitCommandActor actor, CommandHelp<String> helpEntries, @Default("1") int page) {
-		int slotPerPage = 5;
-		int maxPages = helpEntries.getPageSize(slotPerPage);
-		List<Component> list = new ArrayList<>();
-		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
-		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fPage &9(%s/%s)".formatted(Constants.VERSION, page, maxPages)));
-		list.add(LEGACY_SERIALIZER.deserialize("&fMade With &4❤ &fBy HappyAreaBean"));
-		list.add(text("View more info on ")
-				.append(text("Wiki")
-						.color(NamedTextColor.AQUA)
-						.decorate(TextDecoration.BOLD, TextDecoration.UNDERLINED)
-						.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://example.com"))
-						.hoverEvent(text("Click to open wiki!"))));
-		list.add(LEGACY_SERIALIZER.deserialize(""));
-		list.addAll(helpEntries.paginate(page, slotPerPage).stream().map(LEGACY_SERIALIZER::deserialize).toList());
-		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages, HELP_COMMAND_FORMAT));
-		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
-		list.forEach(actor::reply);
+		Utils.buildCommandHelp(helpEntries, page, null).forEach(actor::reply);
 	}
 
 	@Subcommand({"delete"})
@@ -79,7 +64,7 @@ public class FantasyNPCCommand {
 	@Description("Change NPC skin")
 	@Usage("<npc> <ID/m:<mineskinUUID>/https://minesk.in/xxx>")
 	@AutoComplete("@npcNames *")
-	public void changeSkin(BukkitCommandActor actor, FNPC npc, String skin) {
+	public void changeSkin(BukkitCommandActor actor, FNPC npc, @Named("skin ID / Mineskin URL/UUID") String skin) {
 		NPCUtils.changeNPCSkin(npc, skin)
 				.whenComplete((result, throwable) -> {
 					if (throwable != null) {
@@ -138,6 +123,14 @@ public class FantasyNPCCommand {
 		actor.reply("&f%s %s".formatted(npc.getName(), npc.isImitatePlayer() ? "&anow will now imitate the player!" : "&cnow will no longer imitate the player."));
 	}
 
+	@Subcommand({"nametag"})
+	@Description("Toggles NPCs nametag visibility")
+	@Usage("<npc>")
+	public void nameTag(BukkitCommandActor actor, FNPC fNpc) {
+		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.NAME_TAG);
+		actor.reply("&f%s %s".formatted(npc.getName(), npc.isShowNameTag() ? "&anametag now will be visible!" : "&cnametag now will no longer be visible."));
+	}
+
 	@Subcommand({"reloadNPC"})
 	@Description("Reload NPC")
 	public void reloadNPC(BukkitCommandActor actor) {
@@ -173,10 +166,16 @@ public class FantasyNPCCommand {
 				}));
 	}
 
+	@Subcommand({"action help"})
+	@Description("Action commands help")
+	public void actionHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
+		Utils.buildCommandHelp(helpEntries, 1, "action").forEach(actor::reply);
+	}
+
 	@Subcommand({"action add"})
 	@Description("Add a NPC action")
 	@Usage("<npc> <command/message/server> <value>")
-	public void actionAdd(BukkitCommandActor actor, FNPC fNpc, FActionType actionType, String execute) {
+	public void actionAdd(BukkitCommandActor actor, FNPC fNpc, @Named("action type") FActionType actionType, @Named("action content") String execute) {
 		FAction action = new FAction(actionType, execute);
 		FNPCManager.addNPCActions(fNpc, action);
 		actor.reply(textOfChildren(
@@ -190,7 +189,7 @@ public class FantasyNPCCommand {
 	@Subcommand({"action remove"})
 	@Description("Remove a NPC action")
 	@Usage("<npc> <action slot number> [show list (true/false)]")
-	public void actionRemove(BukkitCommandActor actor, FNPC fNpc, int actionSlotNumber, @Optional Boolean showList) {
+	public void actionRemove(BukkitCommandActor actor, FNPC fNpc, @Named("action slot number") int actionSlotNumber, @Optional Boolean showList) {
 		FAction removedAction = FNPCManager.removeNPCAction(fNpc, actionSlotNumber);
 		if (removedAction == null) {
 			actor.reply("&cAction remove failed.");
@@ -235,6 +234,131 @@ public class FantasyNPCCommand {
 					space(),
 					text("Click here to create some?", NamedTextColor.GOLD)
 							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc action add %s ".formatted(fNpc.getKey())))
+							.hoverEvent(text("Click here! :)", NamedTextColor.AQUA, TextDecoration.BOLD))
+			).decorate(TextDecoration.BOLD));
+		}
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.forEach(actor::reply);
+	}
+
+	@Subcommand({"holo help"})
+	@Description("Hologram commands help")
+	public void holoHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
+		Utils.buildCommandHelp(helpEntries, 1, "holo").forEach(actor::reply);
+	}
+
+	@Subcommand({"holo add"})
+	@Description("Add a NPC hologram")
+	@Usage("<npc> <value>")
+	public void holoAdd(BukkitCommandActor actor, FNPC fNpc, @Named("hologram content") String value) {
+		fNpc.getHologram().getLines().add(value);
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Holograms "),
+				text(value, NamedTextColor.WHITE),
+				text(" has been added to NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"holo insert"})
+	@Description("Insert a NPC hologram")
+	@Usage("<npc> <slot> <value>")
+	public void holoInsert(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") Integer slot, @Named("hologram content") String value) {
+		fNpc.getHologram().getLines().add(slot, value);
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Holograms "),
+				text(value, NamedTextColor.WHITE),
+				text(" has been inserted to NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"holo set"})
+	@Description("Set a NPC hologram")
+	@Usage("<npc> <slot> <value>")
+	public void holoSet(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") Integer slot, @Named("hologram content") String value) {
+		String oldLine = fNpc.getHologram().getLines().set(slot, value);
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Holograms #"),
+				text(slot, NamedTextColor.WHITE),
+				space(),
+				text("has been changed from"),
+				space(),
+				text(oldLine, NamedTextColor.WHITE),
+				space(),
+				text("to"),
+				text(value, NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"holo height"})
+	@Description("Add a NPC hologram")
+	@Usage("<npc> <height>")
+	public void holoHeight(BukkitCommandActor actor, FNPC fNpc, @Named("hologram height") Double holoHeight) {
+		fNpc.getHologram().setYHeight(holoHeight);
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("NPC"),
+				space(),
+				text(fNpc.getName() + "'s", NamedTextColor.WHITE),
+				space(),
+				text("hologram height is now set to"),
+				space(),
+				text(holoHeight, NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"holo remove"})
+	@Description("Remove a NPC hologram")
+	@Usage("<npc> <hologram slot number> [show list (true/false)]")
+	public void holoRemove(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") int holoSlotNumber, @Optional Boolean showList) {
+		String removedHolo = fNpc.getHologram().getLines().remove(holoSlotNumber);
+		if (removedHolo == null) {
+			actor.reply("&cHolo remove failed.");
+			return;
+		}
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Hologram "),
+				text(removedHolo, NamedTextColor.WHITE),
+				text(" has been successfully removed!")
+		).color(NamedTextColor.RED));
+		if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc holo list %s".formatted(fNpc.getKey()));
+	}
+
+	@Subcommand({"holo list"})
+	@Description("List NPC holograms")
+	@Usage("<npc>")
+	public void holoList(BukkitCommandActor actor, FNPC fNpc) {
+		FHolo holo = fNpc.getHologram();
+		List<Component> list = new ArrayList<>();
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9&l%s&r lines".formatted(Constants.VERSION, holo.getLines().size())));
+		if (holo.getLines().size() > 0) {
+			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
+			for (int i = 0; i < holo.getLines().size(); i++) {
+				String selectedHolo = holo.getLines().get(i);
+				list.add(textOfChildren(
+						text("[X]", NamedTextColor.RED, TextDecoration.BOLD)
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc holo remove %s %s true".formatted(fNpc.getKey(), i)))
+								.hoverEvent(text("Click here to delete line " + i, NamedTextColor.RED, TextDecoration.BOLD)),
+						space(),
+						text(selectedHolo, NamedTextColor.WHITE)
+								.hoverEvent(textOfChildren(
+										text("Type: ", NamedTextColor.GRAY),
+										text(selectedHolo.startsWith("ICON:") ? "Item" : "Text", NamedTextColor.WHITE)
+								))
+				));
+			}
+		} else {
+			list.add(textOfChildren(
+					text("Holograms list are empty.", NamedTextColor.YELLOW),
+					space(),
+					text("Click here to create some?", NamedTextColor.GOLD)
+							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc holo add %s ".formatted(fNpc.getKey())))
 							.hoverEvent(text("Click here! :)", NamedTextColor.AQUA, TextDecoration.BOLD))
 			).decorate(TextDecoration.BOLD));
 		}

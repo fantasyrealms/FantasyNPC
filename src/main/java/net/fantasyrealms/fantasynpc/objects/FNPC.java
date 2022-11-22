@@ -27,6 +27,7 @@ public class FNPC {
 	private Location location;
 	private boolean lookAtPlayer;
 	private boolean imitatePlayer;
+	private boolean showNameTag;
 	private FHolo hologram;
 	private List<FAction> actions;
 
@@ -55,6 +56,7 @@ public class FNPC {
 				npc.getLocation(),
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
+				false,
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
 	}
@@ -79,6 +81,7 @@ public class FNPC {
 				npc.getLocation(),
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
+				fNpc.isShowNameTag(),
 				fNpc.getHologram(),
 				fNpc.getActions());
 	}

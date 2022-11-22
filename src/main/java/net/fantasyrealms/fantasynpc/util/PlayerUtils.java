@@ -3,6 +3,7 @@ package net.fantasyrealms.fantasynpc.util;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
+import net.fantasyrealms.fantasynpc.objects.FNPC;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.NameTagVisibility;
@@ -19,7 +20,7 @@ public class PlayerUtils {
 		team.setNameTagVisibility(NameTagVisibility.NEVER);
 		team.getEntries().forEach(team::removeEntry);
 		team.addEntry(player.getName());
-		NPCUtils.getNPCNames().forEach(team::addEntry);
+		NPCUtils.getNPCs().stream().filter(npc -> !npc.isShowNameTag()).map(FNPC::getName).forEach(team::addEntry);
 		player.setScoreboard(scoreboard);
 	}
 

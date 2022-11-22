@@ -1,10 +1,11 @@
 package net.fantasyrealms.fantasynpc;
 
-import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.NPCPool;
-import com.github.unldenis.hologram.HologramPool;
 import de.exlll.configlib.YamlConfigurations;
+import gg.optimalgames.hologrambridge.HologramAPI;
+import gg.optimalgames.hologrambridge.HologramBridge;
 import lombok.Getter;
+import lombok.Setter;
 import net.fantasyrealms.fantasynpc.commands.FantasyNPCCommand;
 import net.fantasyrealms.fantasynpc.config.FConfig;
 import net.fantasyrealms.fantasynpc.config.NPCData;
@@ -29,9 +30,8 @@ public class FantasyNPC extends JavaPlugin {
 	@Getter private static FantasyNPC instance;
 	@Getter private NPCPool npcPool;
 	@Getter private BukkitCommandHandler commandHandler;
-	@Getter private HologramPool hologramPool;
 	@Getter private FConfig pluginConfig;
-	@Getter private NPCData npcData;
+	@Setter @Getter private NPCData npcData;
 	public static BukkitAudiences ADVENTURE;
 	public static final MiniMessage MINIMESSAGE = MiniMessage.miniMessage();
 
@@ -64,8 +64,8 @@ public class FantasyNPC extends JavaPlugin {
 		commandHandler.enableAdventure(ADVENTURE);
 
 		getLogger().info("Loading Holograms...");
-		this.hologramPool = new HologramPool(this, pluginConfig.getHologram().getSpawnDistance(),
-				pluginConfig.getHologram().getMinHitDistance(), pluginConfig.getHologram().getMaxHitDistance());
+		new HologramBridge(this, true);
+		if (!isHologramEnabled()) getLogger().warning("No hologram connector were found, hologram feature will be disable.");
 
 		getLogger().info("Loading NPCs...");
 		this.npcPool = NPCPool.builder(this)
@@ -85,14 +85,16 @@ public class FantasyNPC extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+		FNPCManager.disable(npcPool);
 		getServer().getMessenger().unregisterOutgoingPluginChannel(this);
-		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
-			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
-		}
 	}
 
 	public static void debug(String message) {
 		if (FantasyNPC.getInstance().getPluginConfig().isDebug())
 			FantasyNPC.getInstance().getLogger().info("[DEBUG] %s".formatted(message));
+	}
+
+	public boolean isHologramEnabled() {
+		return HologramAPI.getConnector() != null;
 	}
 }
