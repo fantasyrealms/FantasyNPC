@@ -3,6 +3,8 @@ package net.fantasyrealms.fantasynpc.commands;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.Constants;
 import net.fantasyrealms.fantasynpc.constants.UpdateType;
+import net.fantasyrealms.fantasynpc.conversion.ConversionManager;
+import net.fantasyrealms.fantasynpc.conversion.ConversionPlugin;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FAction;
@@ -34,6 +36,8 @@ import revxrsal.commands.help.CommandHelp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static net.fantasyrealms.fantasynpc.FantasyNPC.MINIMESSAGE;
 import static net.fantasyrealms.fantasynpc.util.Utils.LEGACY_SERIALIZER;
@@ -56,10 +60,10 @@ public class FantasyNPCCommand {
 	@Subcommand({"delete"})
 	@Description("Delete a npc using name")
 	@Usage("<npc>")
-	@AutoComplete("@npcNames *")
-	public void deleteNPC(BukkitCommandActor actor, FNPC npc) {
+	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Optional Boolean showList) {
 		if (FNPCManager.removeAndClearData(npc.getName())) {
 			actor.reply("&aNPC &f[%s] &ahas been successfully deleted!".formatted(npc.getName()));
+			if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc list");
 		} else {
 			actor.reply("&cAn error happened while deleting the NPC &f[%s]&c, please check console for more info!".formatted(npc.getName()));
 		}
@@ -68,7 +72,6 @@ public class FantasyNPCCommand {
 	@Subcommand({"skin"})
 	@Description("Change NPC skin")
 	@Usage("<npc> <ID/m:<mineskinUUID>/https://minesk.in/xxx>")
-	@AutoComplete("@npcNames *")
 	public void changeSkin(BukkitCommandActor actor, FNPC npc, @Named("skin ID / Mineskin URL/UUID") String skin) {
 		NPCUtils.changeNPCSkin(npc, skin)
 				.whenComplete((result, throwable) -> {
@@ -134,6 +137,89 @@ public class FantasyNPCCommand {
 	public void nameTag(BukkitCommandActor actor, FNPC fNpc) {
 		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.NAME_TAG);
 		actor.reply("&f%s %s".formatted(npc.getName(), npc.isShowNameTag() ? "&anametag now will be visible!" : "&cnametag now will no longer be visible."));
+	}
+
+	@Subcommand({"list"})
+	@Description("List all the NPCs")
+	public void list(BukkitCommandActor actor) {
+		Map<String, FNPC> fNpc = FantasyNPC.getInstance().getNpcData().getNpcs();
+		List<Component> list = new ArrayList<>();
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9%s &fnps".formatted(Constants.VERSION, fNpc.size())));
+		if (fNpc.size() > 0) {
+			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
+			for (Map.Entry<String, FNPC> entry : fNpc.entrySet()) {
+				String key = entry.getKey();
+				FNPC npc = entry.getValue();
+				list.add(textOfChildren(
+						text("[X]", NamedTextColor.RED, TextDecoration.BOLD)
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc delete %s true".formatted(key)))
+								.hoverEvent(text("Click here to delete npc %s (%s)".formatted(npc.getName(), key), NamedTextColor.RED, TextDecoration.BOLD)),
+						text(" %s".formatted(npc.getName()), NamedTextColor.GREEN)
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc teleport %s".formatted(key)))
+								.hoverEvent(textOfChildren(
+										text("UUID: ", NamedTextColor.GRAY),
+										text(npc.getUuid().toString(), NamedTextColor.WHITE),
+										newline(),
+										text("Key: ", NamedTextColor.GRAY),
+										text(key, NamedTextColor.WHITE),
+										newline(),
+										text("Name: ", NamedTextColor.GRAY),
+										text(npc.getName(), NamedTextColor.WHITE),
+										newline(),
+										text("lookAtPlayer: ", NamedTextColor.GRAY),
+										text(npc.isLookAtPlayer(), NamedTextColor.WHITE),
+										newline(),
+										text("imitatePlayer: ", NamedTextColor.GRAY),
+										text(npc.isImitatePlayer(), NamedTextColor.WHITE),
+										newline(),
+										text("showNameTag: ", NamedTextColor.GRAY),
+										text(npc.isShowNameTag(), NamedTextColor.WHITE),
+										newline(),
+										text("equipment: \n", NamedTextColor.GRAY),
+										text(npc.getEquipment().size() == 0 ? "- None" : npc.getEquipment().stream().map(s -> "- type: %s\n  - Material: %s".formatted(s.getType(), s.getItem().getType().name())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										newline(),
+										text("hologram height: ", NamedTextColor.GRAY),
+										text(npc.getHologram().getYHeight(), NamedTextColor.WHITE),
+										newline(),
+										text("holograms: \n", NamedTextColor.GRAY),
+										text(npc.getHologram().getLines().size() == 0 ? "- None" : npc.getHologram().getLines().stream().map(s -> "- " + s).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										newline(),
+										text("actions: \n", NamedTextColor.GRAY),
+										text(npc.getActions().size() == 0 ? "- None" : npc.getActions().stream().map(s -> "- type: %s\n  - execute: %s".formatted(s.getType(), s.getExecute())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										newline(),
+										newline(),
+										text("Click to teleport!", NamedTextColor.RED, TextDecoration.BOLD)
+								))
+				));
+			}
+		} else {
+			list.add(textOfChildren(
+					text("NPC list are empty.", NamedTextColor.YELLOW),
+					space(),
+					text("Click here to create some?", NamedTextColor.GOLD)
+							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc create"))
+							.hoverEvent(text("Click here! :)", NamedTextColor.AQUA, TextDecoration.BOLD))
+			).decorate(TextDecoration.BOLD));
+		}
+		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
+		list.forEach(actor::reply);
+	}
+
+	@Subcommand({"convert"})
+	@Description("Convert NPC from another plugin")
+	@Usage("<plugin name>")
+	@AutoComplete("servernpc")
+	public void convertNPC(BukkitCommandActor actor, @Named("plugin name") ConversionPlugin plugin) {
+		actor.reply("&aConverting NPCs...");
+		ConversionManager.conversion(plugin).whenComplete((list, throwable) -> {
+			if (throwable != null) {
+				throwable.printStackTrace();
+				return;
+			}
+			FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+			actor.reply("&aSuccessfully converted &f%s &aNPCs!".formatted(list.size()));
+		});
 	}
 
 	@Subcommand({"reloadNPC"})

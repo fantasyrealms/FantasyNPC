@@ -11,6 +11,8 @@ import net.fantasyrealms.fantasynpc.config.FConfig;
 import net.fantasyrealms.fantasynpc.config.NPCData;
 import net.fantasyrealms.fantasynpc.constants.ConfigProperties;
 import net.fantasyrealms.fantasynpc.constants.Constants;
+import net.fantasyrealms.fantasynpc.conversion.ConversionManager;
+import net.fantasyrealms.fantasynpc.conversion.ConversionPlugin;
 import net.fantasyrealms.fantasynpc.event.NPCActionsListener;
 import net.fantasyrealms.fantasynpc.event.PlayerJoinListener;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
@@ -57,6 +59,13 @@ public class FantasyNPC extends JavaPlugin {
 				throw new CommandErrorException("Invalid NPC: &e" + value);
 			}
 			return npcData.getNpcs().get(value);
+		});
+		commandHandler.registerValueResolver(ConversionPlugin.class, context -> {
+			String value = context.pop();
+			if (ConversionManager.SupportedPlugin.match(value).isEmpty()) {
+				throw new CommandErrorException("Invalid Plugin: &e" + value);
+			}
+			return ConversionManager.SupportedPlugin.match(value).get();
 		});
 
 		commandHandler.setHelpWriter((command, actor) -> String.format("&8• &e/%s %s &7- &f%s", command.getPath().toRealString(), command.getUsage(), command.getDescription()));

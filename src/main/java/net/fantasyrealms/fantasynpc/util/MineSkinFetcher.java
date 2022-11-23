@@ -3,25 +3,26 @@ package net.fantasyrealms.fantasynpc.util;
 import com.github.juliarn.npc.profile.Profile;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.bukkit.Bukkit;
+import net.fantasyrealms.fantasynpc.FantasyNPC;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class MineSkinFetcher {
 
 	private static final String MINESKIN_API = "https://api.mineskin.org/get/uuid/";
+	private static final String MINESKIN_ID_API = "https://api.mineskin.org/get/id/";
 
-	public static CompletableFuture<Profile.Property> fetchSkinFromUUID(UUID uuid) {
+	public static CompletableFuture<Profile.Property> fetchSkin(String input) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				StringBuilder builder = new StringBuilder();
-				HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(MINESKIN_API + uuid.toString()).openConnection();
+				String apiUrl = Utils.isValidUUID(input) ? MINESKIN_API : MINESKIN_ID_API;
+				HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(apiUrl + input).openConnection();
 				httpURLConnection.setRequestMethod("GET");
 				httpURLConnection.setDoOutput(true);
 				httpURLConnection.setDoInput(true);
@@ -42,7 +43,7 @@ public class MineSkinFetcher {
 
 				return new Profile.Property("textures", value, signature);
 			} catch (IOException exception) {
-				Bukkit.getLogger().severe("Could not fetch skin! (UUID: " + uuid + "). Message: " + exception.getMessage());
+				FantasyNPC.debug("Could not fetch skin: %s! Message: %s".formatted(input, exception.getMessage()));
 				exception.printStackTrace();
 				return null;
 			}

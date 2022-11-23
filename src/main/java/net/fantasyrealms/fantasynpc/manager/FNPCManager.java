@@ -66,6 +66,14 @@ public class FNPCManager {
 		updateAllPlayerScoreboard();
 	}
 
+	public static void save(FNPC fNpc) {
+		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
+		newNPCs.put(fNpc.getUuid().toString().replace("-", "").substring(0, 8), fNpc);
+		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
+		ConfigManager.saveNPCData();
+		updateAllPlayerScoreboard();
+	}
+
 	public static void addNPCActions(FNPC fNpc, FAction action) {
 		fNpc.getActions().add(action);
 		updateNPC(fNpc);

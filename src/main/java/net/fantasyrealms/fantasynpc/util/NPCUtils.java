@@ -43,7 +43,7 @@ public class NPCUtils {
 		switch (skinType) {
 			case MINESKIN:
 				String skinStripped = MineSkinFetcher.removePrefix(skin.contains("minesk.in") ? MineSkinFetcher.stripURL(skin) : skin);
-				return MineSkinFetcher.fetchSkinFromUUID(UUID.fromString(MojangAPI.addDashes(skinStripped)))
+				return MineSkinFetcher.fetchSkin(Utils.isValidUUID(skinStripped) ? MojangAPI.addDashes(skinStripped) : skinStripped)
 						.thenApplyAsync((textureProperty) -> {
 							if (textureProperty == null) {
 								throw new CommandErrorException("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand.");

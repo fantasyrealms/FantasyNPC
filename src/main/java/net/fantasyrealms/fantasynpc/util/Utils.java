@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static net.fantasyrealms.fantasynpc.constants.Constants.HELP_COMMAND_FORMAT;
 import static net.fantasyrealms.fantasynpc.constants.Constants.PAGE_TEXT;
@@ -25,6 +26,7 @@ public class Utils {
 	public static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder().character('&').build();
 	public static String CURRENT_RELATIVE_PATH = Paths.get("").toAbsolutePath().toString();
 	public static DecimalFormat LOCATION_FORMAT = new DecimalFormat("#.###");
+	private static final Pattern UUID_REGEX_PATTERN = Pattern.compile("^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$");
 	public static String FULL_LINE = "------------------------------------------------------------------------";
 
 	public static List<Component> buildCommandHelp(CommandHelp<String> helpEntries, int page, @Nullable String subCommand) {
@@ -44,7 +46,8 @@ public class Utils {
 		list.add(LEGACY_SERIALIZER.deserialize(""));
 		list.addAll(helpEntries.paginate(page, slotPerPage).stream().map(LEGACY_SERIALIZER::deserialize).toList());
 		list.add(LEGACY_SERIALIZER.deserialize(""));
-		if (maxPages > 1) list.add(Utils.paginateNavigation(page, maxPages, subCommand != null ? "/npc " + subCommand + "%s" : HELP_COMMAND_FORMAT));
+		if (maxPages > 1)
+			list.add(Utils.paginateNavigation(page, maxPages, subCommand != null ? "/npc " + subCommand + "%s" : HELP_COMMAND_FORMAT));
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		return list;
 	}
@@ -80,5 +83,12 @@ public class Utils {
 		String yaw = LOCATION_FORMAT.format(loc.getYaw());
 		String pitch = LOCATION_FORMAT.format(loc.getPitch());
 		return "%s / X: %s / Y: %s / Z: %s / Yaw: %s / Pitch: %s".formatted(loc.getWorld().getName(), x, y, z, yaw, pitch);
+	}
+
+	public static boolean isValidUUID(String str) {
+		if (str == null) {
+			return false;
+		}
+		return UUID_REGEX_PATTERN.matcher(str).matches();
 	}
 }
