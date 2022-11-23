@@ -210,6 +210,7 @@ public class FNPCManager {
 				FNPC npc = npcEntry.getValue();
 				if (npc.getName().equalsIgnoreCase(name)) {
 					newNPCs.remove(uuid);
+					removeHolograms(npc.getUuid());
 					FantasyNPC.getInstance().getNpcPool().getNpc(npc.getUuid()).ifPresent((npcP) -> {
 						FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
 						FantasyNPC.debug("Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npc.getName(), npc.getUuid()));
