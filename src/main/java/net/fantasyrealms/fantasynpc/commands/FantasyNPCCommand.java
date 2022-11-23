@@ -204,16 +204,18 @@ public class FantasyNPCCommand {
 	@Usage("<npc> <equipment type>")
 	public void equipRemove(BukkitCommandActor actor, FNPC fNpc, @Named("equipment type") FEquipType equipType) {
 		boolean success = fNpc.getEquipment().removeIf(e -> e.getType() == equipType);
-		FNPCManager.updateNPC(fNpc);
-		if (success)
-			actor.reply(textOfChildren(
-					text("Equipment type "),
-					text(equipType.name(), NamedTextColor.WHITE),
-					text(" has been removed from NPC "),
-					text(fNpc.getName(), NamedTextColor.WHITE)
-			).color(NamedTextColor.GREEN));
-		else
+
+		if (!success) {
 			throw new CommandErrorException("This equipment type is not available on this NPC!");
+		}
+
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Equipment type "),
+				text(equipType.name(), NamedTextColor.WHITE),
+				text(" has been removed from NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
 	}
 
 	@Subcommand({"equip clear"})
