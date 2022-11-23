@@ -55,6 +55,7 @@ repositories {
     maven { url = 'https://jitpack.io' }
     maven { url = "https://repo.fantasyrealms.net/releases" }
     maven { url = 'https://repo.jaims.dev/repository/maven-public/' }
+    maven { url = "https://repo.dmulloy2.net/repository/public/" }
 }
 
 ext {
@@ -69,6 +70,7 @@ dependencies {
 
     // Other dependencies
     compileOnly 'me.clip:placeholderapi:2.11.1'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:4.8.0'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0'
     implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
