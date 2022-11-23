@@ -1,6 +1,8 @@
 package net.fantasyrealms.fantasynpc.objects;
 
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.github.juliarn.npc.NPC;
+import com.github.juliarn.npc.modifier.EquipmentModifier;
 import com.github.juliarn.npc.modifier.MetadataModifier;
 import com.github.juliarn.npc.profile.Profile;
 import de.exlll.configlib.Configuration;
@@ -10,13 +12,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.fantasyrealms.fantasynpc.config.converter.LocationStringConverter;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Configuration
-@Data @NoArgsConstructor
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class FNPC {
 
@@ -28,11 +32,13 @@ public class FNPC {
 	private boolean lookAtPlayer;
 	private boolean imitatePlayer;
 	private boolean showNameTag;
+	private List<FEquip> equipment;
 	private FHolo hologram;
 	private List<FAction> actions;
 
 	/**
 	 * Return the first 8 character in UUID (Which is saved as a key in NPCData)
+	 *
 	 * @return the first 8 character in UUID
 	 */
 	public String getKey() {
@@ -57,6 +63,7 @@ public class FNPC {
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
 				false,
+				Collections.emptyList(),
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
 	}
@@ -70,7 +77,7 @@ public class FNPC {
 	 * <p>For NPC creating check {@link FNPC#fromNPC(NPC)}</p>
 	 *
 	 * @param fNpc an exist FNPC object for covert
-	 * @param npc new NPC object
+	 * @param npc  new NPC object
 	 * @return A new FNPC
 	 */
 	public static FNPC fromExist(FNPC fNpc, NPC npc) {
@@ -82,6 +89,7 @@ public class FNPC {
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
 				fNpc.isShowNameTag(),
+				fNpc.getEquipment(),
 				fNpc.getHologram(),
 				fNpc.getActions());
 	}
@@ -101,9 +109,22 @@ public class FNPC {
 		npcBuilder.lookAtPlayer(npc.isLookAtPlayer());
 		npcBuilder.imitatePlayer(npc.isImitatePlayer());
 		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> {
-			npcSpawn.metadata()
-					.queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer);
+			npcSpawn.metadata().queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer);
 			npcSpawn.rotation().queueRotate(npc.getLocation().getYaw(), npc.getLocation().getPitch()).send(viewPlayer);
+
+			EquipmentModifier equipModify = npcSpawn.equipment();
+			npc.getEquipment().forEach(equip -> {
+				ItemStack item = equip.getItem();
+				FEquipType type = equip.getType();
+				switch (type) {
+					case HELMET -> equipModify.queue(EnumWrappers.ItemSlot.HEAD, item).send(viewPlayer);
+					case CHEST_PLATE -> equipModify.queue(EnumWrappers.ItemSlot.CHEST, item).send(viewPlayer);
+					case LEGGINGS -> equipModify.queue(EnumWrappers.ItemSlot.LEGS, item).send(viewPlayer);
+					case BOOTS -> equipModify.queue(EnumWrappers.ItemSlot.FEET, item).send(viewPlayer);
+					case MAIN_HAND -> equipModify.queue(EnumWrappers.ItemSlot.MAINHAND, item).send(viewPlayer);
+					case OFF_HAND -> equipModify.queue(EnumWrappers.ItemSlot.OFFHAND, item).send(viewPlayer);
+				}
+			});
 		});
 
 		Profile profile = new Profile(npc.getUuid());

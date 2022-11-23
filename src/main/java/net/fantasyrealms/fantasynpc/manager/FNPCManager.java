@@ -10,6 +10,7 @@ import lombok.Getter;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.objects.FAction;
+import net.fantasyrealms.fantasynpc.objects.FEquip;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import net.fantasyrealms.fantasynpc.util.Utils;
@@ -79,6 +80,12 @@ public class FNPCManager {
 		return removedAction;
 	}
 
+	public static void updateEquip(FNPC fNpc, FEquip equip) {
+		fNpc.getEquipment().removeIf(e -> e.getType() == equip.getType());
+		fNpc.getEquipment().add(equip);
+		updateNPC(fNpc);
+	}
+
 	public static FNPC updateNPC(FNPC fNpc) {
 		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
@@ -106,7 +113,7 @@ public class FNPCManager {
 	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {
 		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
 
-		switch(updateType) {
+		switch (updateType) {
 			case LOOK_AT_PLAYER -> npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
 			case IMITATE_PLAYER -> npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
 			case LOCATION -> npcBuilder.location(fNpc.getLocation());
@@ -170,6 +177,7 @@ public class FNPCManager {
 
 	/**
 	 * Remove hologram from NPC uuid
+	 *
 	 * @param uuid The NPC UUID
 	 */
 	public static void removeHolograms(UUID uuid) {

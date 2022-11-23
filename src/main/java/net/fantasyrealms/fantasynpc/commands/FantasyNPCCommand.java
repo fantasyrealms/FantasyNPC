@@ -7,6 +7,8 @@ import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
 import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FActionType;
+import net.fantasyrealms.fantasynpc.objects.FEquip;
+import net.fantasyrealms.fantasynpc.objects.FEquipType;
 import net.fantasyrealms.fantasynpc.objects.FHolo;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.NPCUtils;
@@ -15,7 +17,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
@@ -25,6 +29,7 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.annotation.Usage;
 import revxrsal.commands.bukkit.BukkitCommandActor;
+import revxrsal.commands.exception.CommandErrorException;
 import revxrsal.commands.help.CommandHelp;
 
 import java.util.ArrayList;
@@ -74,10 +79,10 @@ public class FantasyNPCCommand {
 					}
 					actor.reply("&aNPC &f[%s] &askin has been changed to &f%s&a!".formatted(npc.getName(), skin));
 					actor.reply(text("▍ [Skin still not visible? Click here to reload all the NPCs.]")
-									.color(NamedTextColor.RED)
-									.decorate(TextDecoration.BOLD)
-									.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc reloadnpc"))
-									.hoverEvent(text("/npc reloadnpc").color(NamedTextColor.YELLOW)));
+							.color(NamedTextColor.RED)
+							.decorate(TextDecoration.BOLD)
+							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc reloadnpc"))
+							.hoverEvent(text("/npc reloadnpc").color(NamedTextColor.YELLOW)));
 				});
 	}
 
@@ -166,6 +171,63 @@ public class FantasyNPCCommand {
 				}));
 	}
 
+	@Subcommand({"equip help"})
+	@Description("Equipment commands help")
+	public void equipHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
+		Utils.buildCommandHelp(helpEntries, 1, "equip").forEach(actor::reply);
+	}
+
+	@Subcommand({"equip add"})
+	@Description("Add a NPC equipment by the item in your hand")
+	@Usage("<npc> <equipment type>")
+	public void equipAdd(BukkitCommandActor actor, FNPC fNpc, @Named("equipment type") FEquipType equipType) {
+		actor.requirePlayer();
+		Player player = actor.getAsPlayer();
+
+		if (player.getInventory().getItemInHand().getType() == Material.AIR) {
+			throw new CommandErrorException("You must hold an item in your hand!");
+		}
+
+		ItemStack item = player.getInventory().getItemInHand();
+		FEquip equip = new FEquip(equipType, item);
+		FNPCManager.updateEquip(fNpc, equip);
+		actor.reply(textOfChildren(
+				text("Equipment "),
+				text(equip.toFancyString(), NamedTextColor.WHITE),
+				text(" has been added to NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
+	@Subcommand({"equip remove"})
+	@Description("Remove a NPC equipment by type")
+	@Usage("<npc> <equipment type>")
+	public void equipRemove(BukkitCommandActor actor, FNPC fNpc, @Named("equipment type") FEquipType equipType) {
+		boolean success = fNpc.getEquipment().removeIf(e -> e.getType() == equipType);
+		FNPCManager.updateNPC(fNpc);
+		if (success)
+			actor.reply(textOfChildren(
+					text("Equipment type "),
+					text(equipType.name(), NamedTextColor.WHITE),
+					text(" has been removed from NPC "),
+					text(fNpc.getName(), NamedTextColor.WHITE)
+			).color(NamedTextColor.GREEN));
+		else
+			throw new CommandErrorException("This equipment type is not available on this NPC!");
+	}
+
+	@Subcommand({"equip clear"})
+	@Description("Clear all NPC equipment")
+	@Usage("<npc>")
+	public void equipClear(BukkitCommandActor actor, FNPC fNpc) {
+		fNpc.getEquipment().clear();
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("All equipments has been cleared from NPC "),
+				text(fNpc.getName(), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
 	@Subcommand({"action help"})
 	@Description("Action commands help")
 	public void actionHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
@@ -200,7 +262,8 @@ public class FantasyNPCCommand {
 				text("%s - %s".formatted(actionSlotNumber, removedAction.toFancyString()), NamedTextColor.WHITE),
 				text(" has been successfully removed!")
 		).color(NamedTextColor.RED));
-		if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
+		if (showList && actor.isPlayer())
+			actor.getAsPlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
 	}
 
 	@Subcommand({"action list"})
@@ -326,7 +389,8 @@ public class FantasyNPCCommand {
 				text(removedHolo, NamedTextColor.WHITE),
 				text(" has been successfully removed!")
 		).color(NamedTextColor.RED));
-		if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc holo list %s".formatted(fNpc.getKey()));
+		if (showList && actor.isPlayer())
+			actor.getAsPlayer().performCommand("npc holo list %s".formatted(fNpc.getKey()));
 	}
 
 	@Subcommand({"holo list"})
