@@ -1,1 +1,3 @@
 FantasyNPC Version: ${pluginVersion}
+Commit: https://github.com/fantasyrealms/fantasynpc/commit/${commit}
+Build Date: ${buildDate}

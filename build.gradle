@@ -18,6 +18,12 @@ String getGitHash() {
     return output.toString().trim()
 }
 
+String getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyy.MM.dd')
+    return formattedDate
+}
+
 compileJava {
     sourceCompatibility = JavaLanguageVersion.of(17)
     targetCompatibility = JavaLanguageVersion.of(17)
@@ -114,7 +120,7 @@ spigot {
 }
 
 tasks.processResources {
-    expand "pluginVersion": project.version
+    expand("pluginVersion": project.version, "commit": getGitHash(), "buildDate": getDate())
 }
 
 task cleanPlugin() {
