@@ -2,6 +2,7 @@ package net.fantasyrealms.fantasynpc.event;
 
 import com.github.juliarn.npc.NPC;
 import com.github.juliarn.npc.event.PlayerNPCInteractEvent;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.fantasyrealms.fantasynpc.util.NPCUtils;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import org.bukkit.entity.Player;
@@ -21,7 +22,7 @@ public class NPCActionsListener implements Listener {
 
 		NPCUtils.getNPCAction(npc).forEach((action -> {
 			switch (action.getType()) {
-				case MESSAGE -> player.sendMessage(colorize(action.getExecute()));
+				case MESSAGE -> player.sendMessage(colorize(PlaceholderAPI.setPlaceholders(player, action.getExecute())));
 				case COMMAND -> player.performCommand(action.getExecute());
 				case SERVER -> PlayerUtils.sendServer(player, action.getExecute());
 			}
