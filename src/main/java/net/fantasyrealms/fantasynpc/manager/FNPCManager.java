@@ -143,7 +143,7 @@ public class FNPCManager {
 
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 			FNPC oldNPC = npcEntry.getValue();
-			if (oldNPC.getName().equalsIgnoreCase(fNpc.getName())) {
+			if (oldNPC.getUuid() == fNpc.getUuid()) {
 				newNPCs.replace(npcEntry.getKey(), FNPC.fromExist(fNpc, npc));
 			}
 		}
@@ -202,19 +202,16 @@ public class FNPCManager {
 		});
 	}
 
-	public static boolean removeAndClearData(String name) {
+	public static boolean removeAndClearData(FNPC fNpc) {
 		try {
 			Map<String, FNPC> newNPCs = new HashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 			for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
-				String uuid = npcEntry.getKey();
+				String key = npcEntry.getKey();
 				FNPC npc = npcEntry.getValue();
-				if (npc.getName().equalsIgnoreCase(name)) {
-					newNPCs.remove(uuid);
+				if (fNpc.getUuid() == npc.getUuid()) {
+					newNPCs.remove(key);
 					removeHolograms(npc.getUuid());
-					FantasyNPC.getInstance().getNpcPool().getNpc(npc.getUuid()).ifPresent((npcP) -> {
-						FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
-						FantasyNPC.debug("Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npc.getName(), npc.getUuid()));
-					});
+					removeFromPool(fNpc.getUuid());
 				}
 			}
 			FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);

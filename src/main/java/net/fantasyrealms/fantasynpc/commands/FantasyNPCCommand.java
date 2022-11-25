@@ -61,7 +61,7 @@ public class FantasyNPCCommand {
 	@Description("Delete a npc using name")
 	@Usage("<npc>")
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Optional Boolean showList) {
-		if (FNPCManager.removeAndClearData(npc.getName())) {
+		if (FNPCManager.removeAndClearData(npc)) {
 			actor.reply("&aNPC &f[%s] &ahas been successfully deleted!".formatted(npc.getName()));
 			if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc list");
 		} else {
