@@ -459,7 +459,7 @@ public class FantasyNPCCommand {
 	}
 
 	@Subcommand({"holo height"})
-	@Description("Add a NPC hologram")
+	@Description("Set NPC hologram height")
 	@Usage("<npc> <height>")
 	public void holoHeight(BukkitCommandActor actor, FNPC fNpc, @Named("hologram height") Double holoHeight) {
 		fNpc.getHologram().setYHeight(holoHeight);
