@@ -505,8 +505,12 @@ public class FantasyNPCCommand {
 						text(selectedHolo, NamedTextColor.WHITE)
 								.hoverEvent(textOfChildren(
 										text("Type: ", NamedTextColor.GRAY),
-										text(selectedHolo.startsWith("ICON:") ? "Item" : "Text", NamedTextColor.WHITE)
+										text(selectedHolo.startsWith("ICON:") ? "Item" : "Text", NamedTextColor.WHITE),
+										newline(),
+										newline(),
+										text("Click to edit line " + i, NamedTextColor.RED, TextDecoration.BOLD))
 								))
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc holo set %s %s %s".formatted(fNpc.getKey(), i, selectedHolo))
 				));
 			}
 		} else {
