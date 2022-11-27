@@ -445,6 +445,7 @@ public class FantasyNPCCommand {
 				text(oldLine, NamedTextColor.WHITE),
 				space(),
 				text("to"),
+				space(),
 				text(value, NamedTextColor.WHITE)
 		).color(NamedTextColor.GREEN));
 	}
