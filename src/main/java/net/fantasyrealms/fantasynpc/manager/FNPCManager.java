@@ -122,8 +122,8 @@ public class FNPCManager {
 		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
 
 		switch (updateType) {
-			case LOOK_AT_PLAYER -> npcBuilder.lookAtPlayer(!fNpc.isLookAtPlayer());
-			case IMITATE_PLAYER -> npcBuilder.imitatePlayer(!fNpc.isImitatePlayer());
+			case LOOK_AT_PLAYER -> fNpc.setLookAtPlayer(!fNpc.isLookAtPlayer());
+			case IMITATE_PLAYER -> fNpc.setImitatePlayer(!fNpc.isImitatePlayer());
 			case LOCATION -> npcBuilder.location(fNpc.getLocation());
 			case NAME_TAG -> fNpc.setShowNameTag(!fNpc.isShowNameTag());
 		}
