@@ -68,7 +68,7 @@ public class FantasyNPC extends JavaPlugin {
 			return ConversionManager.SupportedPlugin.match(value).get();
 		});
 
-		commandHandler.setHelpWriter((command, actor) -> String.format("&8• &e/%s %s &7- &f%s", command.getPath().toRealString(), command.getUsage(), command.getDescription()));
+		commandHandler.setHelpWriter((command, actor) -> String.format(" &8• &e/%s %s &7- &f%s", command.getPath().toRealString(), command.getUsage(), command.getDescription()));
 		commandHandler.register(new FantasyNPCCommand());
 		commandHandler.enableAdventure(ADVENTURE);
 
