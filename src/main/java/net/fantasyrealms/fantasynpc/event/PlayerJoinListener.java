@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerJoinListener implements Listener {
 
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void oJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
 		PlayerUtils.setNPCScoreboard(player);
