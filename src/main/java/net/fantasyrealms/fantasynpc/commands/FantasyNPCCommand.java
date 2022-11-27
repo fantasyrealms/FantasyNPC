@@ -420,6 +420,10 @@ public class FantasyNPCCommand {
 	@Description("Insert a NPC hologram")
 	@Usage("<npc> <slot> <value>")
 	public void holoInsert(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") Integer slot, @Named("hologram content") String value) {
+		if (slot > fNpc.getHologram().getLines().size()) {
+			actor.error("Invalid hologram slot. Must between 1 and %s.".formatted(fNpc.getHologram().getLines().size()));
+			return;
+		}
 		fNpc.getHologram().getLines().add(slot, value);
 		FNPCManager.updateNPC(fNpc);
 		actor.reply(textOfChildren(
@@ -434,6 +438,10 @@ public class FantasyNPCCommand {
 	@Description("Set a NPC hologram")
 	@Usage("<npc> <slot> <value>")
 	public void holoSet(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") Integer slot, @Named("hologram content") String value) {
+		if (slot > fNpc.getHologram().getLines().size()) {
+			actor.error("Invalid hologram slot. Must between 1 and %s.".formatted(fNpc.getHologram().getLines().size()));
+			return;
+		}
 		String oldLine = fNpc.getHologram().getLines().set(slot, value);
 		FNPCManager.updateNPC(fNpc);
 		actor.reply(textOfChildren(
