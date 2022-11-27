@@ -85,6 +85,13 @@ public class Utils {
 		return "%s / X: %s / Y: %s / Z: %s / Yaw: %s / Pitch: %s".formatted(loc.getWorld().getName(), x, y, z, yaw, pitch);
 	}
 
+	public static String pettyLocationShort(Location loc) {
+		String x = LOCATION_FORMAT.format(loc.getX());
+		String y = LOCATION_FORMAT.format(loc.getY());
+		String z = LOCATION_FORMAT.format(loc.getZ());
+		return "%s, %s, %s, %s".formatted(loc.getWorld().getName(), x, y, z);
+	}
+
 	public static boolean isValidUUID(String str) {
 		if (str == null) {
 			return false;

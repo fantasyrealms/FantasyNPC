@@ -60,7 +60,7 @@ public class FantasyNPCCommand {
 	@Subcommand({"delete"})
 	@Description("Delete a npc using name")
 	@Usage("<npc>")
-	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Optional Boolean showList) {
+	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Default("false") Boolean showList) {
 		if (FNPCManager.removeAndClearData(npc)) {
 			actor.reply("&aNPC &f[%s] &ahas been successfully deleted!".formatted(npc.getName()));
 			if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc list");
@@ -155,7 +155,8 @@ public class FantasyNPCCommand {
 						text("[X]", NamedTextColor.RED, TextDecoration.BOLD)
 								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc delete %s true".formatted(key)))
 								.hoverEvent(text("Click here to delete npc %s (%s)".formatted(npc.getName(), key), NamedTextColor.RED, TextDecoration.BOLD)),
-						text(" %s".formatted(npc.getName()), NamedTextColor.GREEN)
+						MINIMESSAGE.deserialize(" <green>%s <gray>(%s)</gray> <dark_gray>| <gray>%s".formatted(npc.getName(), npc.getKey(),
+										Utils.pettyLocationShort(npc.getLocation())))
 								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc teleport %s".formatted(key)))
 								.hoverEvent(textOfChildren(
 										text("UUID: ", NamedTextColor.GRAY),
@@ -166,6 +167,9 @@ public class FantasyNPCCommand {
 										newline(),
 										text("Name: ", NamedTextColor.GRAY),
 										text(npc.getName(), NamedTextColor.WHITE),
+										newline(),
+										text("Location: ", NamedTextColor.GRAY),
+										text(Utils.pettyLocationShort(npc.getLocation()), NamedTextColor.WHITE),
 										newline(),
 										text("lookAtPlayer: ", NamedTextColor.GRAY),
 										text(npc.isLookAtPlayer(), NamedTextColor.WHITE),
@@ -339,7 +343,7 @@ public class FantasyNPCCommand {
 	@Subcommand({"action remove"})
 	@Description("Remove a NPC action")
 	@Usage("<npc> <action slot number> [show list (true/false)]")
-	public void actionRemove(BukkitCommandActor actor, FNPC fNpc, @Named("action slot number") int actionSlotNumber, @Optional Boolean showList) {
+	public void actionRemove(BukkitCommandActor actor, FNPC fNpc, @Named("action slot number") int actionSlotNumber, @Default("false") Boolean showList) {
 		FAction removedAction = FNPCManager.removeNPCAction(fNpc, actionSlotNumber);
 		if (removedAction == null) {
 			actor.reply("&cAction remove failed.");
@@ -465,7 +469,7 @@ public class FantasyNPCCommand {
 	@Subcommand({"holo remove"})
 	@Description("Remove a NPC hologram")
 	@Usage("<npc> <hologram slot number> [show list (true/false)]")
-	public void holoRemove(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") int holoSlotNumber, @Optional Boolean showList) {
+	public void holoRemove(BukkitCommandActor actor, FNPC fNpc, @Named("hologram slot") int holoSlotNumber, @Default("false") Boolean showList) {
 		String removedHolo = fNpc.getHologram().getLines().remove(holoSlotNumber);
 		if (removedHolo == null) {
 			actor.reply("&cHolo remove failed.");
