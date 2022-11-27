@@ -57,7 +57,7 @@ public class FantasyNPCCommand {
 		Utils.buildCommandHelp(helpEntries, page, null).forEach(actor::reply);
 	}
 
-	@Subcommand({"delete"})
+	@Subcommand({"delete", "remove"})
 	@Description("Delete a npc using name")
 	@Usage("<npc>")
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Default("false") Boolean showList) {
