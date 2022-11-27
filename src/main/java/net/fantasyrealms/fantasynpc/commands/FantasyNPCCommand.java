@@ -58,7 +58,7 @@ public class FantasyNPCCommand {
 	}
 
 	@Subcommand({"delete", "remove"})
-	@Description("Delete a npc using name")
+	@Description("Delete a npc")
 	@Usage("<npc>")
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Default("false") Boolean showList) {
 		if (FNPCManager.removeAndClearData(npc)) {
@@ -81,7 +81,7 @@ public class FantasyNPCCommand {
 						return;
 					}
 					actor.reply("&aNPC &f[%s] &askin has been changed to &f%s&a!".formatted(npc.getName(), skin));
-					actor.reply(text("▍ [Skin still not visible? Click here to reload all the NPCs.]")
+					actor.reply(text("▍ Skin still not visible? Click here to reload all the NPCs.")
 							.color(NamedTextColor.RED)
 							.decorate(TextDecoration.BOLD)
 							.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/npc reloadnpc"))
@@ -90,7 +90,7 @@ public class FantasyNPCCommand {
 	}
 
 	@Subcommand({"clear"})
-	@Description("Clear ALL the saved NPCs")
+	@Description("Clear and delete **ALL** the saved NPCs")
 	public void clearNPC(BukkitCommandActor actor) {
 		FNPCManager.clear();
 		actor.reply("&cAll the NPCs data has been cleared.");
@@ -242,7 +242,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"create"})
 	@Description("Create a new npc")
-	@Usage("[name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
+	@Usage("[npc name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
 	public void createNPC(BukkitCommandActor actor, @Optional String name, @Optional String skin) {
 		actor.requirePlayer();
 		Player player = actor.getAsPlayer();
@@ -359,7 +359,7 @@ public class FantasyNPCCommand {
 	}
 
 	@Subcommand({"action list"})
-	@Description("List a NPC actions")
+	@Description("List NPC actions")
 	@Usage("<npc>")
 	public void actionList(BukkitCommandActor actor, FNPC fNpc) {
 		List<Component> list = new ArrayList<>();
