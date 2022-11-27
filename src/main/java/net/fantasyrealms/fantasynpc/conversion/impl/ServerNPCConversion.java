@@ -45,6 +45,8 @@ public class ServerNPCConversion extends ConversionPlugin {
 						String type = value[0];
 						String execute = value[1];
 						if (type.contains("cmd")) {
+							if (execute.startsWith("/"))
+								execute = execute.substring(1);
 							actions.add(new FAction(FActionType.COMMAND, execute));
 						}
 						if (type.contains("msg")) {
@@ -71,14 +73,14 @@ public class ServerNPCConversion extends ConversionPlugin {
 					ConfigurationSection settings = section.getConfigurationSection(path + "Settings");
 					if (settings != null) {
 						settings.getKeys(false).forEach(settingsKey -> {
-							String sPath = key + ".";
+							String sPath = settingsKey + ".";
 							boolean lookClose = settings.getBoolean(sPath + "lookClose", false);
 
-							ConfigurationSection inventory = section.getConfigurationSection(sPath + "Inventory");
+							ConfigurationSection inventory = settings.getConfigurationSection("Inventory");
 							List<FEquip> equip = new ArrayList<>();
 							if (inventory != null) {
 								inventory.getKeys(false).forEach(inv -> {
-									ItemStack item = inventory.getItemStack(key + ".");
+									ItemStack item = inventory.getItemStack(inv);
 									if (item == null) return;
 									if (inv.contains("HEAD")) {
 										equip.add(new FEquip(FEquipType.HELMET, item));
