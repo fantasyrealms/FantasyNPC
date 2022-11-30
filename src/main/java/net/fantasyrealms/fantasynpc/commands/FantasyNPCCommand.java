@@ -22,6 +22,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.PermissionDefault;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
@@ -31,6 +32,7 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.annotation.Usage;
 import revxrsal.commands.bukkit.BukkitCommandActor;
+import revxrsal.commands.bukkit.annotation.CommandPermission;
 import revxrsal.commands.exception.CommandErrorException;
 import revxrsal.commands.help.CommandHelp;
 
@@ -49,6 +51,7 @@ import static net.kyori.adventure.text.event.ClickEvent.openUrl;
 import static revxrsal.commands.util.Strings.colorize;
 
 @Command({"fantasynpc", "npc"})
+@CommandPermission("fantasynpc.admin")
 public class FantasyNPCCommand {
 
 	@Default
@@ -537,6 +540,7 @@ public class FantasyNPCCommand {
 
 	@Subcommand({"about"})
 	@Description("Information about FantasyNPC :)")
+	@CommandPermission(value = "", defaultAccess = PermissionDefault.TRUE)
 	public void about(BukkitCommandActor actor) {
 		actor.reply(textOfChildren(
 				Constants.HEADER,
