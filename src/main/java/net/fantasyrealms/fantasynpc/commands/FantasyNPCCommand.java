@@ -548,6 +548,14 @@ public class FantasyNPCCommand {
 				text("By ", NamedTextColor.GRAY)
 						.append(text("HappyAreaBean", NamedTextColor.GREEN)),
 				newline(),
+				Constants.HEADER,
+				newline(),
+				MINIMESSAGE.deserialize(" <dark_gray>•</dark_gray> Plugin Version: <yellow>%s</yellow>".formatted(Constants.VERSION)),
+				newline(),
+				MINIMESSAGE.deserialize(" <dark_gray>•</dark_gray> Commit: <click:open_url:'https://github.com/fantasyrealms/fantasynpc/commit/%s'><yellow>%s</yellow></click>".formatted(Constants.COMMIT, Constants.COMMIT)),
+				newline(),
+				MINIMESSAGE.deserialize(" <dark_gray>•</dark_gray> Build Date: <yellow>%s</yellow>".formatted(Constants.BUILD_DATE)),
+				newline(),
 				Constants.HEADER
 		));
 	}

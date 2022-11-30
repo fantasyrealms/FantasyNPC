@@ -23,9 +23,11 @@ public class Constants {
 			"                             |___/                     ",
 			"");
 	public static Gson GSON = new Gson();
-	public static String VERSION = FantasyNPC.getInstance().getDescription().getVersion();
+	public static String VERSION = "${pluginVersion}";
+	public static String COMMIT = "${commit}";
+	public static String BUILD_DATE = "${buildDate}";
 
-	public static final Component HEADER = MINIMESSAGE.deserialize("<gradient:green:blue>－－－－－－－－－－－－－－－－－－－－－－－－</gradient>");
+	public static final Component HEADER = MINIMESSAGE.deserialize("<gradient:green:blue>－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－</gradient>");
 
 	public static final String HELP_COMMAND_FORMAT = "/npc %s";
 	public static final String PAGE_TEXT = "Page %s";
