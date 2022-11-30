@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'kr.entree.spigradle' version '2.4.2'
+    id 'net.kyori.blossom' version "1.2.0"
 }
 
 group 'net.fantasyrealms'
@@ -101,12 +102,6 @@ dependencies {
 
 shadowJar {
     archiveClassifier.set('')
-    relocate('net.kyori', libsPackage + "kyori")
-    relocate('de.exlll.configlib', libsPackage + "configlib")
-    relocate("org.snakeyaml", libsPackage + "yaml")
-    relocate('org.bstats', libsPackage + "bstats")
-    relocate("com.cryptomorin.xseries", libsPackage + "xseries")
-    relocate("com.github.juliarn", libsPackage + "npclib")
 }
 
 spigot {
@@ -151,6 +146,13 @@ task setupServer {
     if (server.exists()) {
         return
     }
+}
+
+blossom {
+    def constants = "src/main/java/net/fantasyrealms/fantasynpc/constants/Constants.java"
+    replaceToken("\${pluginVersion}", version.toString(), constants)
+    replaceToken("\${commit}", getGitHash().toString(), constants)
+    replaceToken("\${buildDate}", getDate().toString(), constants)
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
