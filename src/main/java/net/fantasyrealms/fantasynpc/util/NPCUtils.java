@@ -35,50 +35,46 @@ public class NPCUtils {
 		boolean nameExist = name != null && nameExists(name);
 		String nameResults = name == null ? ProfileUtils.randomName() : name;
 
-		FantasyNPC.debug("Name exists: %s / Inputted Name: %s / Final Name: %s".formatted(nameExist, name, nameResults));
+		FantasyNPC.debug("Name exists: %s / Inputted Name: %s / Final Name: %s / Skin type: %s".formatted(nameExist, name, nameResults, skinType));
 
 		profile.setName(nameResults);
 
 		if (skinType != SkinType.NONE) FantasyNPC.debug("Fetching skin type %s: %s...".formatted(skinType.name().toLowerCase(), skin));
-		switch (skinType) {
-			case MINESKIN:
-				return MineSkinFetcher.fetchSkin(skin)
-						.thenApplyAsync((textureProperty) -> {
-							if (textureProperty == null) {
-								throw new CommandErrorException("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand.");
-							}
-							profile.setProperty(textureProperty);
+		return switch (skinType) {
+			case MINESKIN -> MineSkinFetcher.fetchSkin(skin)
+					.thenApplyAsync((textureProperty) -> {
+						if (textureProperty == null) {
+							throw new CommandErrorException("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand.");
+						}
+						profile.setProperty(textureProperty);
+						return profile;
+					});
+			case NORMAL -> CompletableFuture.supplyAsync(() -> {
+						try {
+							cc.happyareabean.mojangapi.profile.Profile userProfile = MojangAPI.getProfile(skin);
+							if (userProfile.getCode() != 0) throw new RuntimeException("Invalid response code.");
+							return userProfile;
+						} catch (IOException | APIException e) {
+							throw new RuntimeException(e);
+						}
+					}).exceptionally((throwable) -> {
+						FantasyNPC.debug("Error while getting skin: %s: %s".formatted(skin, throwable.getMessage()));
+						FantasyNPC.debug("Skipped skin changing...");
+						return null;
+					})
+					.thenApplyAsync((userProfile) -> {
+						if (userProfile == null) {
 							return profile;
-						});
-			case NORMAL:
-				return CompletableFuture.supplyAsync(() -> {
-							try {
-								cc.happyareabean.mojangapi.profile.Profile userProfile = MojangAPI.getProfile(skin);
-								if (userProfile.getCode() != 0) throw new RuntimeException("Invalid response code.");
-								return userProfile;
-							} catch (IOException | APIException e) {
-								throw new RuntimeException(e);
-							}
-						}).exceptionally((throwable) -> {
-							FantasyNPC.debug("Error while getting skin: %s: %s".formatted(skin, throwable.getMessage()));
-							FantasyNPC.debug("Skipped skin changing...");
-							return null;
-						})
-						.thenApplyAsync((userProfile) -> {
-							if (userProfile == null) {
-								return profile;
-							}
-							profile.setProperty(new Profile.Property("textures",
-									userProfile.getTextures().getRaw().getValue(), userProfile.getTextures().getRaw().getSignature()));
-							return profile;
-						});
-			case NONE:
-			default:
-				return CompletableFuture.supplyAsync(() -> {
-					profile.complete();
-					return profile;
-				});
-		}
+						}
+						profile.setProperty(new Profile.Property("textures",
+								userProfile.getTextures().getRaw().getValue(), userProfile.getTextures().getRaw().getSignature()));
+						return profile;
+					});
+			case NONE -> CompletableFuture.supplyAsync(() -> {
+				profile.complete();
+				return profile;
+			});
+		};
 	}
 
 	/**
