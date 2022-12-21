@@ -42,8 +42,7 @@ public class NPCUtils {
 		if (skinType != SkinType.NONE) FantasyNPC.debug("Fetching skin type %s: %s...".formatted(skinType.name().toLowerCase(), skin));
 		switch (skinType) {
 			case MINESKIN:
-				String skinStripped = MineSkinFetcher.removePrefix(skin.contains("minesk.in") ? MineSkinFetcher.stripURL(skin) : skin);
-				return MineSkinFetcher.fetchSkin(Utils.isValidUUID(skinStripped) ? MojangAPI.addDashes(skinStripped) : skinStripped)
+				return MineSkinFetcher.fetchSkin(skin)
 						.thenApplyAsync((textureProperty) -> {
 							if (textureProperty == null) {
 								throw new CommandErrorException("&cYour mineskin UUID/URL is not valid, you can change the skin by using &e/npc skin &ccommand.");

@@ -1,5 +1,6 @@
 package net.fantasyrealms.fantasynpc.util;
 
+import cc.happyareabean.mojangapi.MojangAPI;
 import com.github.juliarn.npc.profile.Profile;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,8 +22,9 @@ public class MineSkinFetcher {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				StringBuilder builder = new StringBuilder();
-				String apiUrl = Utils.isValidUUID(input) ? MINESKIN_API : MINESKIN_ID_API;
-				HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(apiUrl + input).openConnection();
+				String skinValue = removePrefix(input.contains("minesk.in") ? stripURL(input) : input);
+				String apiUrl = Utils.isValidUUID(MojangAPI.addDashes(skinValue)) ? MINESKIN_API : MINESKIN_ID_API;
+				HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(apiUrl + skinValue).openConnection();
 				httpURLConnection.setRequestMethod("GET");
 				httpURLConnection.setDoOutput(true);
 				httpURLConnection.setDoInput(true);
