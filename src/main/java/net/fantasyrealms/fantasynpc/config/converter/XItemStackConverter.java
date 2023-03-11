@@ -17,7 +17,7 @@ public class XItemStackConverter implements Serializer<ItemStack, Map<String, Ob
 
 	@Override
 	public ItemStack deserialize(Map<String, Object> element) {
-		if (!XMaterial.supports(9)) {
+		if (!XMaterial.supports(9) && ((String) element.get("material")).contains("POTION")) {
 			element.replace("material", "POTION");
 		}
 		return XItemStack.deserialize(element);
