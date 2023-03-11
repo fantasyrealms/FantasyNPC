@@ -1,6 +1,8 @@
 package net.fantasyrealms.fantasynpc.config.converter;
 
 import com.cryptomorin.xseries.XItemStack;
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XPotion;
 import de.exlll.configlib.Serializer;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,6 +17,9 @@ public class XItemStackConverter implements Serializer<ItemStack, Map<String, Ob
 
 	@Override
 	public ItemStack deserialize(Map<String, Object> element) {
+		if (!XMaterial.supports(9)) {
+			element.replace("material", "POTION");
+		}
 		return XItemStack.deserialize(element);
 	}
 }
