@@ -94,6 +94,29 @@ public class FNPC {
 				fNpc.getActions());
 	}
 
+	/**
+	 * Clone a new FNPC object from an existed FNPC object.
+	 * <br/>
+	 * While still keeping the exclusive setting in FNPC (if exist)
+	 * <br/>
+	 * <b>The cloned FNPC will also apply a random UUID!</b>
+	 * <br/>
+	 * <p>This useful for copying an existed FNPC without creating a new one</p>
+	 *
+	 * @param fNpc an exist FNPC object
+	 * @return A new FNPC
+	 */
+	public static FNPC cloneExist(FNPC fNpc) {
+		return new FNPC(UUID.randomUUID(), fNpc.getName(),
+				fNpc.getSkin(),
+				fNpc.getLocation(),
+				fNpc.isLookAtPlayer(),
+				fNpc.isImitatePlayer(),
+				fNpc.isShowNameTag(),
+				fNpc.getEquipment(),
+				fNpc.getHologram(),
+				fNpc.getActions());
+	}
 
 	/**
 	 * Return a new NPC Builder from FNPC

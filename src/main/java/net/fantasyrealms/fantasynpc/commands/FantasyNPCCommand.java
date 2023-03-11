@@ -264,6 +264,22 @@ public class FantasyNPCCommand {
 				}));
 	}
 
+	@Subcommand({"copy"})
+	@Description("Copy a existed npc")
+	@Usage("[npc name]")
+	public void copyNPC(BukkitCommandActor actor, FNPC fnpc) {
+		Player player = actor.getAsPlayer();
+		player.sendMessage(colorize("&eCopying NPC [&f%s&e]...".formatted(fnpc.getKey())));
+
+		FNPC npc = FNPC.cloneExist(fnpc);
+		npc.setLocation(player.getLocation());
+
+		FNPCManager.save(npc);
+		player.sendMessage(colorize("&aCopied NPC [&f%s&a] &afrom &f%s!".formatted(npc.getKey(), fnpc.getKey())));
+		FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+		player.sendMessage(colorize("&aReloaded all NPC."));
+	}
+
 	@Subcommand({"equip help"})
 	@Description("Equipment commands help")
 	public void equipHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
