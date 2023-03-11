@@ -14,6 +14,7 @@ import net.fantasyrealms.fantasynpc.config.converter.LocationStringConverter;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -63,7 +64,7 @@ public class FNPC {
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
 				false,
-				Collections.emptyList(),
+				new ArrayList<>(),
 				new FHolo(1.0, Collections.emptyList()),
 				Collections.emptyList());
 	}
@@ -88,6 +89,28 @@ public class FNPC {
 				npc.getLocation(),
 				npc.isLookAtPlayer(),
 				npc.isImitatePlayer(),
+				fNpc.isShowNameTag(),
+				fNpc.getEquipment(),
+				fNpc.getHologram(),
+				fNpc.getActions());
+	}
+
+	/**
+	 * Build a new FNPC object from an existed FNPC object.
+	 * <br/>
+	 * While still keeping the exclusive setting in FNPC (if exist)
+	 * <br/>
+	 * <p>This normally use for updating an existed FNPC without losing data.</p>
+	 *
+	 * @param fNpc an exist FNPC object for covert
+	 * @return The same FNPC for edit/update
+	 */
+	public static FNPC fromExist(FNPC fNpc) {
+		return new FNPC(fNpc.getUuid(), fNpc.getName(),
+				fNpc.getSkin(),
+				fNpc.getLocation(),
+				fNpc.isLookAtPlayer(),
+				fNpc.isImitatePlayer(),
 				fNpc.isShowNameTag(),
 				fNpc.getEquipment(),
 				fNpc.getHologram(),

@@ -89,9 +89,10 @@ public class FNPCManager {
 	}
 
 	public static void updateEquip(FNPC fNpc, FEquip equip) {
-		fNpc.getEquipment().removeIf(e -> e.getType() == equip.getType());
-		fNpc.getEquipment().add(equip);
-		updateNPC(fNpc);
+		FNPC npc = FNPC.fromExist(fNpc);
+		npc.getEquipment().removeIf(e -> e.getType() == equip.getType());
+		npc.getEquipment().add(equip);
+		updateNPC(npc);
 	}
 
 	public static FNPC updateNPC(FNPC fNpc) {
