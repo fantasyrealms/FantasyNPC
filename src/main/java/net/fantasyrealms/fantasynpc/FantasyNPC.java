@@ -56,7 +56,22 @@ public class FantasyNPC extends JavaPlugin {
 		commandHandler.registerValueResolver(FNPC.class, context -> {
 			String value = context.pop();
 			if (npcData.getNpcs().keySet().stream().noneMatch(npc -> npc.equalsIgnoreCase(value))) {
-				throw new CommandErrorException("Invalid NPC: &e" + value);
+				if (npcData.getNpcs().values().stream().noneMatch(npc -> npc.getName().equalsIgnoreCase(value))) {
+					throw new CommandErrorException("Invalid NPC: &e" + value);
+				}
+			}
+			if (npcData.getNpcs().values().stream().anyMatch(npc -> npc.getName().equalsIgnoreCase(value))) {
+				long size = npcData.getNpcs().values().stream()
+						.filter(npc -> npc.getName().equalsIgnoreCase(value))
+						.count();
+
+				if (size > 1) {
+					throw new CommandErrorException("Multiple NPC with the same name '%s', please use ID instead!".formatted(value));
+				}
+
+				return npcData.getNpcs().values().stream()
+						.filter(npc -> npc.getName().equalsIgnoreCase(value))
+						.findFirst().orElseThrow();
 			}
 			return npcData.getNpcs().get(value);
 		});
