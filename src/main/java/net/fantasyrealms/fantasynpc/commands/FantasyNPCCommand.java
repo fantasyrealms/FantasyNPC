@@ -118,6 +118,17 @@ public class FantasyNPCCommand {
 		actor.reply("&aUpdated &f%s &alocation to &f%s".formatted(npc.getName(), Utils.pettyLocation(npc.getLocation())));
 	}
 
+	@Subcommand({"name"})
+	@Description("Change NPC name")
+	@Usage("<npc>")
+	public void name(BukkitCommandActor actor, FNPC fNpc, String name) {
+		actor.requirePlayer();
+		String oldName = fNpc.getName();
+		fNpc.setName(name);
+		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.NAME);
+		actor.reply("&aUpdated name from &f%s &ato &f%s&a!".formatted(oldName, npc.getName()));
+	}
+
 	@Subcommand({"lookAtPlayer"})
 	@Description("Toggles whether NPCs look at the player")
 	@Usage("<npc>")

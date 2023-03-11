@@ -126,6 +126,7 @@ public class FNPCManager {
 			case IMITATE_PLAYER -> fNpc.setImitatePlayer(!fNpc.isImitatePlayer());
 			case LOCATION -> npcBuilder.location(fNpc.getLocation());
 			case NAME_TAG -> fNpc.setShowNameTag(!fNpc.isShowNameTag());
+			case NAME -> fNpc.setName(fNpc.getName());
 		}
 
 		return updateNPC(fNpc);
