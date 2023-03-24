@@ -26,6 +26,7 @@ import org.bukkit.permissions.PermissionDefault;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Default;
+import revxrsal.commands.annotation.DefaultFor;
 import revxrsal.commands.annotation.Description;
 import revxrsal.commands.annotation.Named;
 import revxrsal.commands.annotation.Optional;
@@ -54,7 +55,7 @@ import static revxrsal.commands.util.Strings.colorize;
 @CommandPermission("fantasynpc.admin")
 public class FantasyNPCCommand {
 
-	@Default
+	@DefaultFor({"fantasynpc", "npc"})
 	@Description("FantasyNPC commands list")
 	public void help(BukkitCommandActor actor, CommandHelp<String> helpEntries, @Default("1") int page) {
 		Utils.buildCommandHelp(helpEntries, page, null).forEach(actor::reply);
@@ -291,6 +292,7 @@ public class FantasyNPCCommand {
 		player.sendMessage(colorize("&aReloaded all NPC."));
 	}
 
+	@DefaultFor({"fantasynpc equip", "npc equip"})
 	@Subcommand({"equip help"})
 	@Description("Equipment commands help")
 	public void equipHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
@@ -350,6 +352,7 @@ public class FantasyNPCCommand {
 		).color(NamedTextColor.GREEN));
 	}
 
+	@DefaultFor({"fantasynpc action", "npc action"})
 	@Subcommand({"action help"})
 	@Description("Action commands help")
 	public void actionHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
@@ -426,6 +429,7 @@ public class FantasyNPCCommand {
 		list.forEach(actor::reply);
 	}
 
+	@DefaultFor({"fantasynpc holo", "npc holo"})
 	@Subcommand({"holo help"})
 	@Description("Hologram commands help")
 	public void holoHelp(BukkitCommandActor actor, CommandHelp<String> helpEntries) {
