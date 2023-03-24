@@ -83,8 +83,8 @@ dependencies {
     implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0'
     implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
     implementation('com.github.cryptomorin:XSeries:9.3.1') { transitive = false }
-    implementation 'com.github.Revxrsal.Lamp:common:89ccf4bc52'
-    implementation 'com.github.Revxrsal.Lamp:bukkit:89ccf4bc52'
+    implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
+    implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
     implementation 'com.github.Chubbyduck1:HologramBridge:15ad8f66a6'
     implementation "cc.happyareabean:MojangAPI:2.0.0"
 
@@ -163,7 +163,7 @@ task relocateShadowJar(type: ConfigureShadowRelocation) {
     prefix = project.group + ".fantasynpc.libs" // Default value is "shadow"
 }
 
-def runDirectoryDir = project.hasProperty('runPaper.runDirectory') ? project.runPaper.runDirectory : file("${project.rootProject.projectDir}/working")
+def runDirectoryDir = project.hasProperty('runPaper.runDirectory') ? project.getProperty('runPaper.runDirectory') : "${project.rootProject.projectDir}/working"
 
 tasks {
     runServer {
@@ -171,7 +171,7 @@ tasks {
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.8.8")
-        runDirectory.set(runDirectoryDir)
+        runDirectory.set(file(runDirectoryDir))
     }
 }
 
