@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'net.fantasyrealms'
-version '1.0.0-SNAPSHOT-' + getGitHash()
+version '1.0.0'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -115,10 +115,6 @@ spigot {
     authors 'HappyAreaBean'
 }
 
-tasks.processResources {
-    expand("pluginVersion": project.version, "commit": getGitHash(), "buildDate": getDate())
-}
-
 task cleanPlugin() {
     group 'deploy'
     description 'Cleans the plugin in the working directory up'
@@ -149,9 +145,15 @@ task setupServer {
     }
 }
 
+def versionWithGit = "${project.version}-${getGitHash()}"
+
+tasks.processResources {
+    expand("pluginVersion": versionWithGit, "commit": getGitHash(), "buildDate": getDate())
+}
+
 blossom {
     def constants = "src/main/java/net/fantasyrealms/fantasynpc/constants/Constants.java"
-    replaceToken("\${pluginVersion}", version.toString(), constants)
+    replaceToken("\${pluginVersion}", versionWithGit, constants)
     replaceToken("\${commit}", getGitHash().toString(), constants)
     replaceToken("\${buildDate}", getDate().toString(), constants)
 }
