@@ -3,6 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'kr.entree.spigradle' version '2.4.2'
     id 'net.kyori.blossom' version "1.2.0"
+    id "xyz.jpenilla.run-paper" version "2.0.0"
 }
 
 group 'net.fantasyrealms'
@@ -81,7 +82,7 @@ dependencies {
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'com.github.Exlll.ConfigLib:configlib-yaml:v4.2.0'
     implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
-    implementation('com.github.cryptomorin:XSeries:9.1.0') { transitive = false }
+    implementation('com.github.cryptomorin:XSeries:9.3.1') { transitive = false }
     implementation 'com.github.Revxrsal.Lamp:common:89ccf4bc52'
     implementation 'com.github.Revxrsal.Lamp:bukkit:89ccf4bc52'
     implementation 'com.github.Chubbyduck1:HologramBridge:15ad8f66a6'
@@ -160,7 +161,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocatio
 task relocateShadowJar(type: ConfigureShadowRelocation) {
     target = tasks.shadowJar
     prefix = project.group + ".fantasynpc.libs" // Default value is "shadow"
-
 }
 
 tasks.shadowJar.dependsOn tasks.relocateShadowJar
