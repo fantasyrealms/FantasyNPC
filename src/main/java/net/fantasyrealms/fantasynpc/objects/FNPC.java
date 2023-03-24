@@ -65,8 +65,8 @@ public class FNPC {
 				npc.isImitatePlayer(),
 				false,
 				new ArrayList<>(),
-				new FHolo(1.0, Collections.emptyList()),
-				Collections.emptyList());
+				new FHolo(2.25, new ArrayList<>()),
+				new ArrayList<>());
 	}
 
 	/**
