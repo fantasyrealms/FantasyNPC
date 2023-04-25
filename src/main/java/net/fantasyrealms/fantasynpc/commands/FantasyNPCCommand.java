@@ -362,7 +362,10 @@ public class FantasyNPCCommand {
 	@Subcommand({"action add"})
 	@Description("Add a NPC action")
 	@Usage("<npc> <command/message/server> <value>")
-	public void actionAdd(BukkitCommandActor actor, FNPC fNpc, @Named("action type") FActionType actionType, @Named("action content") String execute) {
+	public void actionAdd(
+			BukkitCommandActor actor,
+			FNPC fNpc, @Named("action type") FActionType actionType,
+			@Named("action content") String execute) {
 		FAction action = new FAction(actionType, execute);
 		FNPCManager.addNPCActions(fNpc, action);
 		actor.reply(textOfChildren(
@@ -391,6 +394,38 @@ public class FantasyNPCCommand {
 			actor.getAsPlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
 	}
 
+	@Subcommand({"action edit"})
+	@Description("Edit a NPC action")
+	@Usage("<npc> <action slot number> <command/message/server> <value>")
+	public void actionEdit(
+			BukkitCommandActor actor,
+			FNPC fNpc,
+			@Named("action slot number") int slot,
+			@Named("action type") FActionType type,
+			@Named("action content") String execute
+	) {
+		if (slot > fNpc.getActions().size()) {
+			actor.error("Invalid actions slot. Must between 1 and %s.".formatted(fNpc.getActions().size()));
+			return;
+		}
+
+		FAction newAction = new FAction(type, execute);
+		FAction oldAction = fNpc.getActions().set(slot, newAction);
+		FNPCManager.updateNPC(fNpc);
+		actor.reply(textOfChildren(
+				text("Actions #"),
+				text(slot, NamedTextColor.WHITE),
+				space(),
+				text("has been changed from"),
+				space(),
+				text("%s, %s".formatted(oldAction.getType(), oldAction.getExecute()), NamedTextColor.WHITE),
+				space(),
+				text("to"),
+				space(),
+				text("%s, %s".formatted(type, execute), NamedTextColor.WHITE)
+		).color(NamedTextColor.GREEN));
+	}
+
 	@Subcommand({"action list"})
 	@Description("List NPC actions")
 	@Usage("<npc>")
@@ -414,6 +449,8 @@ public class FantasyNPCCommand {
 										text("Execute: ", NamedTextColor.GRAY),
 										text(action.getExecute(), NamedTextColor.WHITE)
 								))
+								.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/npc action edit %s %s %s %s".formatted(fNpc.getKey(), i, action.getType(), action.getExecute())))
+								.hoverEvent(text("Click here to edit action " + i, NamedTextColor.RED, TextDecoration.BOLD))
 				));
 			}
 		} else {
