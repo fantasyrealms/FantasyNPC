@@ -17,6 +17,7 @@ import net.fantasyrealms.fantasynpc.event.NPCActionsListener;
 import net.fantasyrealms.fantasynpc.event.PlayerJoinListener;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
+import net.fantasyrealms.fantasynpc.metrics.MetricsWrapper;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -36,6 +37,7 @@ public class FantasyNPC extends JavaPlugin {
 	@Setter @Getter private NPCData npcData;
 	public static BukkitAudiences ADVENTURE;
 	public static final MiniMessage MINIMESSAGE = MiniMessage.miniMessage();
+	@Getter private MetricsWrapper metricsWrapper;
 
 	@Override
 	public void onEnable() {
@@ -103,6 +105,8 @@ public class FantasyNPC extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new NPCActionsListener(), this);
 
 		getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+		metricsWrapper = new MetricsWrapper(this, 18297);
 
 		getLogger().info("Thank you for using FantasyNPC!");
 	}
