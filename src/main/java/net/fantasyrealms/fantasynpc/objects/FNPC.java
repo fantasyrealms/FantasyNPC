@@ -175,7 +175,7 @@ public class FNPC {
 
 		Profile profile = new Profile(npc.getUuid());
 		profile.setProperty(new Profile.Property("textures", npc.getSkin().getRaw(), npc.getSkin().getSignature()));
-		profile.setName(npc.getName());
+		profile.setName("NPC_" + npc.getKey());
 		profile.complete();
 
 		npcBuilder.profile(profile);

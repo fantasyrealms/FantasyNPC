@@ -18,7 +18,9 @@ public class PlayerUtils {
 		}
 
 		Scoreboard scoreboard = player.getScoreboard();
-		NPCUtils.getNPCs().stream().filter(npc -> !npc.isShowNameTag()).map(FNPC::getName).forEach(n -> {
+		NPCUtils.getNPCs().stream().filter(npc -> !npc.isShowNameTag()).map(FNPC::getKey).forEach(n -> {
+			// add NPC_ prefix
+			n = "NPC_" + n;
 			// check if a team for this entity is already created
 			var team = scoreboard.getTeam(n);
 			if (team == null) {
