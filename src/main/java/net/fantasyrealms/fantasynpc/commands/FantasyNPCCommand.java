@@ -67,7 +67,7 @@ public class FantasyNPCCommand {
 	public void deleteNPC(BukkitCommandActor actor, FNPC npc, @Default("false") Boolean showList) {
 		if (FNPCManager.removeAndClearData(npc)) {
 			actor.reply("&aNPC &f[%s] &ahas been successfully deleted!".formatted(npc.getName()));
-			if (showList && actor.isPlayer()) actor.getAsPlayer().performCommand("npc list");
+			if (showList && actor.isPlayer()) actor.requirePlayer().performCommand("npc list");
 		} else {
 			actor.reply("&cAn error happened while deleting the NPC &f[%s]&c, please check console for more info!".formatted(npc.getName()));
 		}
@@ -104,8 +104,8 @@ public class FantasyNPCCommand {
 	@Description("Teleport you to the NPC")
 	@Usage("<npc>")
 	public void teleport(BukkitCommandActor actor, FNPC fNpc) {
-		actor.requirePlayer();
-		actor.getAsPlayer().teleport(fNpc.getLocation());
+		Player player = actor.requirePlayer();
+		player.teleport(fNpc.getLocation());
 		actor.reply("&aTeleported to &f%s &7[%s]".formatted(fNpc.getName(), Utils.pettyLocation(fNpc.getLocation())));
 	}
 
@@ -113,8 +113,8 @@ public class FantasyNPCCommand {
 	@Description("Change NPC location to your current location")
 	@Usage("<npc>")
 	public void location(BukkitCommandActor actor, FNPC fNpc) {
-		actor.requirePlayer();
-		fNpc.setLocation(actor.getAsPlayer().getLocation());
+		Player player = actor.requirePlayer();
+		fNpc.setLocation(player.getLocation());
 		FNPC npc = FNPCManager.updateNPC(fNpc, UpdateType.LOCATION);
 		actor.reply("&aUpdated &f%s &alocation to &f%s".formatted(npc.getName(), Utils.pettyLocation(npc.getLocation())));
 	}
@@ -161,7 +161,7 @@ public class FantasyNPCCommand {
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9%s &fnps".formatted(Constants.VERSION, fNpc.size())));
-		if (fNpc.size() > 0) {
+		if (!fNpc.isEmpty()) {
 			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
 			for (Map.Entry<String, FNPC> entry : fNpc.entrySet()) {
 				String key = entry.getKey();
@@ -196,16 +196,16 @@ public class FantasyNPCCommand {
 										text(npc.isShowNameTag(), NamedTextColor.WHITE),
 										newline(),
 										text("equipment: \n", NamedTextColor.GRAY),
-										text(npc.getEquipment().size() == 0 ? "- None" : npc.getEquipment().stream().map(s -> "- type: %s\n  - Material: %s".formatted(s.getType(), s.getItem().getType().name())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										text(npc.getEquipment().isEmpty() ? "- None" : npc.getEquipment().stream().map(s -> "- type: %s\n  - Material: %s".formatted(s.getType(), s.getItem().getType().name())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
 										newline(),
 										text("hologram height: ", NamedTextColor.GRAY),
 										text(npc.getHologram().getYHeight(), NamedTextColor.WHITE),
 										newline(),
 										text("holograms: \n", NamedTextColor.GRAY),
-										text(npc.getHologram().getLines().size() == 0 ? "- None" : npc.getHologram().getLines().stream().map(s -> "- " + s).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										text(npc.getHologram().getLines().isEmpty() ? "- None" : npc.getHologram().getLines().stream().map(s -> "- " + s).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
 										newline(),
 										text("actions: \n", NamedTextColor.GRAY),
-										text(npc.getActions().size() == 0 ? "- None" : npc.getActions().stream().map(s -> "- type: %s\n  - execute: %s".formatted(s.getType(), s.getExecute())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
+										text(npc.getActions().isEmpty() ? "- None" : npc.getActions().stream().map(s -> "- type: %s\n  - execute: %s".formatted(s.getType(), s.getExecute())).collect(Collectors.joining("\n")), NamedTextColor.WHITE),
 										newline(),
 										newline(),
 										text("Click to teleport!", NamedTextColor.RED, TextDecoration.BOLD)
@@ -259,8 +259,7 @@ public class FantasyNPCCommand {
 	@Description("Create a new npc")
 	@Usage("[npc name] [ID/m:<mineskinUUID>/https://minesk.in/xxx]")
 	public void createNPC(BukkitCommandActor actor, @Optional String name, @Optional String skin) {
-		actor.requirePlayer();
-		Player player = actor.getAsPlayer();
+		Player player = actor.requirePlayer();
 		player.sendMessage(colorize(name == null ? "&aCreating NPC..." : "&aCreating NPC with name [&f%s&a]...".formatted(name)));
 		NPCUtils.createNPC(player.getLocation(), name, skin)
 				.whenComplete((npc, throwable) -> {
@@ -280,7 +279,7 @@ public class FantasyNPCCommand {
 	@Description("Copy a existed npc")
 	@Usage("[npc name]")
 	public void copyNPC(BukkitCommandActor actor, FNPC fnpc) {
-		Player player = actor.getAsPlayer();
+		Player player = actor.requirePlayer();
 		player.sendMessage(colorize("&eCopying NPC [&f%s&e]...".formatted(fnpc.getKey())));
 
 		FNPC npc = FNPC.cloneExist(fnpc);
@@ -303,8 +302,7 @@ public class FantasyNPCCommand {
 	@Description("Add a NPC equipment by the item in your hand")
 	@Usage("<npc> <equipment type>")
 	public void equipAdd(BukkitCommandActor actor, FNPC fNpc, @Named("equipment type") FEquipType equipType) {
-		actor.requirePlayer();
-		Player player = actor.getAsPlayer();
+		Player player = actor.requirePlayer();
 
 		if (player.getInventory().getItemInHand().getType() == Material.AIR) {
 			throw new CommandErrorException("You must hold an item in your hand!");
@@ -391,7 +389,7 @@ public class FantasyNPCCommand {
 				text(" has been successfully removed!")
 		).color(NamedTextColor.RED));
 		if (showList && actor.isPlayer())
-			actor.getAsPlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
+			actor.requirePlayer().performCommand("npc action list %s".formatted(fNpc.getKey()));
 	}
 
 	@Subcommand({"action edit"})
@@ -433,7 +431,7 @@ public class FantasyNPCCommand {
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9%s &factions".formatted(Constants.VERSION, fNpc.getActions().size())));
-		if (fNpc.getActions().size() > 0) {
+		if (!fNpc.getActions().isEmpty()) {
 			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
 			for (int i = 0; i < fNpc.getActions().size(); i++) {
 				FAction action = fNpc.getActions().get(i);
@@ -562,7 +560,7 @@ public class FantasyNPCCommand {
 				text(" has been successfully removed!")
 		).color(NamedTextColor.RED));
 		if (showList && actor.isPlayer())
-			actor.getAsPlayer().performCommand("npc holo list %s".formatted(fNpc.getKey()));
+			actor.requirePlayer().performCommand("npc holo list %s".formatted(fNpc.getKey()));
 	}
 
 	@Subcommand({"holo list"})
@@ -573,7 +571,7 @@ public class FantasyNPCCommand {
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9&l%s&r lines".formatted(Constants.VERSION, holo.getLines().size())));
-		if (holo.getLines().size() > 0) {
+		if (!holo.getLines().isEmpty()) {
 			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
 			for (int i = 0; i < holo.getLines().size(); i++) {
 				String selectedHolo = holo.getLines().get(i);
