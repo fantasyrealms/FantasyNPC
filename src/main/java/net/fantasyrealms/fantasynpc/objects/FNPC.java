@@ -15,7 +15,6 @@ import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -84,7 +83,7 @@ public class FNPC {
 	public static FNPC fromExist(FNPC fNpc, NPC npc) {
 		Profile profile = npc.getProfile();
 		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
-		return new FNPC(profile.getUniqueId(), profile.getName(),
+		return new FNPC(fNpc.getUuid(), fNpc.getName(),
 				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
 				npc.getLocation(),
 				npc.isLookAtPlayer(),
