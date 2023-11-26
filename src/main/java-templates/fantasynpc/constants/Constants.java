@@ -23,9 +23,9 @@ public class Constants {
 			"                             |___/                     ",
 			"");
 	public static Gson GSON = new Gson();
-	public static String VERSION = "${pluginVersion}";
-	public static String COMMIT = "${commit}";
-	public static String BUILD_DATE = "${buildDate}";
+	public static String VERSION = "{{ pluginVersion }}";
+	public static String COMMIT = "{{ commit }}";
+	public static String BUILD_DATE = "{{ buildDate }}";
 
 	public static final Component HEADER = MINIMESSAGE.deserialize("<gradient:green:blue>－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－</gradient>");
 

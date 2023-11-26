@@ -1,10 +1,11 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id 'kr.entree.spigradle' version '2.4.2'
-    id 'net.kyori.blossom' version "1.2.0"
-    id "xyz.jpenilla.run-paper" version "2.0.0"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'kr.entree.spigradle' version '2.4.3'
+    id 'net.kyori.blossom' version "2.1.0"
+    id 'net.kyori.indra.git' version "3.1.3"
+    id "xyz.jpenilla.run-paper" version "2.2.2"
 }
 
 group 'net.fantasyrealms'
@@ -12,16 +13,9 @@ version '1.0.4'
 
 compileJava.options.encoding = 'UTF-8'
 
-String getGitHash() {
-    def output = new ByteArrayOutputStream()
-    exec {
-        standardOutput = output
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-    }
-    return output.toString().trim()
-}
+def gitCommit = indraGit.commit().abbreviate(7).name()
 
-String getDate() {
+static String getDate() {
     def date = new Date()
     def formattedDate = date.format('yyyy.MM.dd')
     return formattedDate
@@ -32,7 +26,6 @@ compileJava {
     targetCompatibility = JavaLanguageVersion.of(17)
     options.compilerArgs += ["-parameters"]
     options.fork = true
-    options.forkOptions.executable = "javac"
 }
 
 repositories {
@@ -137,7 +130,7 @@ spigot {
     authors 'HappyAreaBean'
 }
 
-task cleanPlugin() {
+tasks.register('cleanPlugin') {
     group 'deploy'
     description 'Cleans the plugin in the working directory up'
 
@@ -148,7 +141,8 @@ task cleanPlugin() {
     }
 }
 
-task deploy(type: Copy, dependsOn: ['cleanPlugin', 'jar']) {
+tasks.register('deploy', Copy) {
+    dependsOn['cleanPlugin', 'jar']
     group 'deploy'
     description 'Exports you plugin to the plugin directory in your test server'
 
@@ -156,7 +150,7 @@ task deploy(type: Copy, dependsOn: ['cleanPlugin', 'jar']) {
     into 'working/plugins'
 }
 
-task setupServer {
+tasks.register('setupServer') {
     group 'server'
     description 'Downloads the server jar'
 
@@ -167,24 +161,29 @@ task setupServer {
     }
 }
 
-def versionWithGit = "${project.version}-${getGitHash()}"
+def versionWithGit = "${project.version}-${gitCommit}"
 
 tasks.processResources {
-    expand("pluginVersion": versionWithGit, "commit": getGitHash(), "buildDate": getDate())
+    expand("pluginVersion": versionWithGit, "commit": gitCommit, "buildDate": getDate())
 }
 
-blossom {
-    def constants = "src/main/java/net/fantasyrealms/fantasynpc/constants/Constants.java"
-    replaceToken("\${pluginVersion}", versionWithGit, constants)
-    replaceToken("\${commit}", getGitHash().toString(), constants)
-    replaceToken("\${buildDate}", getDate().toString(), constants)
+sourceSets {
+    main {
+        blossom {
+            javaSources {
+                property("pluginVersion", versionWithGit.toString())
+                property("commit", gitCommit)
+                property("buildDate", getDate().toString())
+            }
+        }
+    }
 }
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-    target = tasks.shadowJar
-    prefix = project.group + ".fantasynpc.libs" // Default value is "shadow"
+tasks.named('shadowJar', ShadowJar) {
+    enableRelocation true
+    relocationPrefix project.group + ".fantasynpc.libs"
 }
 
 def runDirectoryDir = project.hasProperty('runPaper.runDirectory') ? project.getProperty('runPaper.runDirectory') : "${project.rootProject.projectDir}/working"
@@ -198,5 +197,3 @@ tasks {
         runDirectory.set(file(runDirectoryDir))
     }
 }
-
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
