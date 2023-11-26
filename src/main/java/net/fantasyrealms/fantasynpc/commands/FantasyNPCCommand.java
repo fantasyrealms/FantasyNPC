@@ -614,7 +614,7 @@ public class FantasyNPCCommand {
 				Constants.HEADER,
 				newline(),
 				MINIMESSAGE.deserialize("<b><gradient:#18f6c1:#ff579b>FantasyNPC - %s</gradient></b>".formatted(Constants.VERSION))
-						.clickEvent(openUrl("https://go.happyareabean/fantasynpc"))
+						.clickEvent(openUrl("https://go.happyareabean.cc/fantasynpc"))
 						.hoverEvent(MINIMESSAGE.deserialize("<rainbow>click me!")),
 				newline(),
 				text("By ", NamedTextColor.GRAY)
