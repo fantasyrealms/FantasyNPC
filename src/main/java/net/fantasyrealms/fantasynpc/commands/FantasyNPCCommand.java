@@ -431,6 +431,7 @@ public class FantasyNPCCommand {
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9%s &factions".formatted(Constants.VERSION, fNpc.getActions().size())));
+		list.add(LEGACY_SERIALIZER.deserialize("&fNPC: &a%s &7(%s)".formatted(fNpc.getName(), fNpc.getKey())));
 		if (!fNpc.getActions().isEmpty()) {
 			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
 			for (int i = 0; i < fNpc.getActions().size(); i++) {
@@ -571,6 +572,7 @@ public class FantasyNPCCommand {
 		List<Component> list = new ArrayList<>();
 		list.add(LEGACY_SERIALIZER.deserialize("&8&m----------------------------------------"));
 		list.add(LEGACY_SERIALIZER.deserialize("&b&lFantasyNPC &f(v%s) &7- &fTotal &9&l%s&r lines".formatted(Constants.VERSION, holo.getLines().size())));
+		list.add(LEGACY_SERIALIZER.deserialize("&fNPC: &a%s &7(%s)".formatted(fNpc.getName(), fNpc.getKey())));
 		if (!holo.getLines().isEmpty()) {
 			list.add(LEGACY_SERIALIZER.deserialize("&eHover for more info!"));
 			for (int i = 0; i < holo.getLines().size(); i++) {
