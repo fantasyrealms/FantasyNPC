@@ -9,7 +9,7 @@ plugins {
 }
 
 group 'net.fantasyrealms'
-version '1.0.4'
+version '1.0.5'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -195,5 +195,9 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.8.8")
         runDirectory.set(file(runDirectoryDir))
+        downloadPlugins {
+            url("https://hangarcdn.papermc.io/plugins/ViaVersion/ViaVersion/versions/4.8.1/PAPER/ViaVersion-4.8.1.jar")
+            url("https://hangarcdn.papermc.io/plugins/dmulloy2/ProtocolLib/versions/5.1.0/PAPER/ProtocolLib.jar")
+        }
     }
 }
