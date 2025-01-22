@@ -37,9 +37,17 @@ public class NPCUtils {
 
 		UUID uuidResult = uuid != null ? uuid : UUID.randomUUID();
 		boolean nameExist = name != null && nameExists(name);
-		String nameResults = name == null ? "npc" : name;
+		boolean preventDupName = FantasyNPC.getInstance().getPluginConfig().getNpc().isPreventDuplicatedName();
+		String nameResults;
 
-		FantasyNPC.debug("Name exists: %s / Inputted Name: %s / Final Name: %s / Skin type: %s".formatted(nameExist, name, nameResults, skinType));
+		if (nameExist && preventDupName) {
+			nameResults = "NPC_" + getKeyFromUUID(uuidResult);
+		} else {
+			nameResults = name != null ? name : "NPC_" + getKeyFromUUID(uuidResult);
+		}
+
+		FantasyNPC.debug("Name exists: %s / Inputted Name: %s / Prevent Dup Name: %s / Final Name: %s / Skin type: %s"
+				.formatted(nameExist, name, preventDupName, nameResults, skinType));
 
 		if (skinType != SkinType.NONE) FantasyNPC.debug("Fetching skin type %s: %s...".formatted(skinType.name().toLowerCase(), skin));
 		return switch (skinType) {
@@ -65,12 +73,12 @@ public class NPCUtils {
 					})
 					.thenApplyAsync((userProfile) -> {
 						if (userProfile == null) {
-							return Profile.resolved("FantasyNPC", UUID.randomUUID());
+							return Profile.resolved(nameResults, uuidResult);
 						}
 						return Profile.resolved(nameResults, uuidResult, Set.of(ProfileProperty.property("textures",
 								userProfile.getTextures().getRaw().getValue(), userProfile.getTextures().getRaw().getSignature())));
 					});
-			case NONE -> CompletableFuture.supplyAsync(() -> Profile.resolved("FantasyNPC", UUID.randomUUID()));
+			case NONE -> CompletableFuture.supplyAsync(() -> Profile.resolved(nameResults, uuidResult));
 		};
 	}
 
@@ -125,5 +133,9 @@ public class NPCUtils {
 
 	public static boolean nameExists(String input) {
 		return getNPCNames().contains(input);
+	}
+
+	public static String getKeyFromUUID(UUID uuid) {
+		return uuid.toString().replace("-", "").substring(0, 8);
 	}
 }

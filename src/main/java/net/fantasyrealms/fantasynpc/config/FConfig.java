@@ -18,6 +18,12 @@ public class FConfig {
 	@Configuration
 	@Getter @Setter
 	public static class NPC {
+		@Comment({
+				"Should FantasyNPC prevent duplicated name when creating?",
+				"Duplicated name won't affect NPC function, but will affect using NPC name in commands."
+		})
+		private boolean preventDuplicatedName = true;
+
 		@Comment("The distance in which NPCs are spawned for players.")
 		private int spawnDistance = 60;
 

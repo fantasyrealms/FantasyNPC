@@ -68,7 +68,7 @@ public class FNPC {
 			}
 		}
 		if (textureProperty == null) textureProperty = ProfileProperty.property("textures", "null", "null");
-		return new FNPC(profile.uniqueId(), profile.name(),
+		return new FNPC(profile.uniqueId(), profile.name().replace("NPC_", ""),
 				new FSkin(textureProperty.value(), textureProperty.signature()),
 				new Location(Bukkit.getWorld(npc.position().worldId()), npc.position().x(), npc.position().y(), npc.position().z(),
 						npc.position().yaw(), npc.position().pitch()),
