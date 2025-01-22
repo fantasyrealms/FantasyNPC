@@ -1,21 +1,26 @@
 package net.fantasyrealms.fantasynpc.objects;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.github.juliarn.npc.NPC;
-import com.github.juliarn.npc.modifier.EquipmentModifier;
-import com.github.juliarn.npc.modifier.MetadataModifier;
-import com.github.juliarn.npc.profile.Profile;
+import com.github.juliarn.npclib.api.Npc;
+import com.github.juliarn.npclib.api.profile.Profile;
+import com.github.juliarn.npclib.api.profile.ProfileProperty;
+import com.github.juliarn.npclib.bukkit.util.BukkitPlatformUtil;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.SerializeWith;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.config.converter.LocationStringConverter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Configuration
@@ -49,19 +54,26 @@ public class FNPC {
 	 * Build a new FNPC object from NPC.
 	 * This normally use for creating new FNPC.
 	 * <br/>
-	 * <p>For NPC update converting check {@link FNPC#fromExist(FNPC, NPC)}</p>
+	 * <p>For NPC update converting check {@link FNPC#fromExist(FNPC, Npc)}</p>
 	 *
 	 * @param npc NPC object
 	 * @return an FNPC object filled without FHolo and FActions
 	 */
-	public static FNPC fromNPC(NPC npc) {
-		Profile profile = npc.getProfile();
-		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
-		return new FNPC(profile.getUniqueId(), profile.getName(),
-				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
-				npc.getLocation(),
-				npc.isLookAtPlayer(),
-				npc.isImitatePlayer(),
+	public static FNPC fromNPC(Npc<World, Player, ItemStack, Plugin> npc) {
+		Profile profile = npc.profile();
+		ProfileProperty textureProperty = null;
+		for (ProfileProperty property : profile.properties()) {
+			if (property.name().equalsIgnoreCase("textures")) {
+				textureProperty = property;
+			}
+		}
+		if (textureProperty == null) textureProperty = ProfileProperty.property("textures", "null", "null");
+		return new FNPC(profile.uniqueId(), profile.name(),
+				new FSkin(textureProperty.value(), textureProperty.signature()),
+				new Location(Bukkit.getWorld(npc.position().worldId()), npc.position().x(), npc.position().y(), npc.position().z(),
+						npc.position().yaw(), npc.position().pitch()),
+				npc.flagValueOrDefault(Npc.LOOK_AT_PLAYER),
+				npc.flagValueOrDefault(Npc.HIT_WHEN_PLAYER_HITS),
 				false,
 				new ArrayList<>(),
 				new FHolo(2.25, new ArrayList<>()),
@@ -74,20 +86,27 @@ public class FNPC {
 	 * While still keeping the exclusive setting in FNPC (if exist)
 	 * <br/>
 	 * <p>This normally use for updating an existed FNPC without losing data.</p>
-	 * <p>For NPC creating check {@link FNPC#fromNPC(NPC)}</p>
+	 * <p>For NPC creating check {@link FNPC#fromNPC(Npc)}</p>
 	 *
 	 * @param fNpc an exist FNPC object for covert
 	 * @param npc  new NPC object
 	 * @return A new FNPC
 	 */
-	public static FNPC fromExist(FNPC fNpc, NPC npc) {
-		Profile profile = npc.getProfile();
-		Profile.Property textureProperty = profile.getProperty("textures").isPresent() ? profile.getProperty("textures").get() : new Profile.Property("textures", "null", "null");
+	public static FNPC fromExist(FNPC fNpc, Npc<World, Player, ItemStack, Plugin> npc) {
+		Profile profile = npc.profile();
+		ProfileProperty textureProperty = null;
+		for (ProfileProperty property : profile.properties()) {
+			if (property.name().equalsIgnoreCase("textures")) {
+				textureProperty = property;
+			}
+		}
+		if (textureProperty == null) textureProperty = ProfileProperty.property("textures", "null", "null");
 		return new FNPC(fNpc.getUuid(), fNpc.getName(),
-				new FSkin(textureProperty.getValue(), textureProperty.getSignature()),
-				npc.getLocation(),
-				npc.isLookAtPlayer(),
-				npc.isImitatePlayer(),
+				new FSkin(textureProperty.value(), textureProperty.signature()),
+				new Location(Bukkit.getWorld(npc.position().worldId()), npc.position().x(), npc.position().y(), npc.position().z(),
+						npc.position().yaw(), npc.position().pitch()),
+				npc.flagValueOrDefault(Npc.LOOK_AT_PLAYER),
+				npc.flagValueOrDefault(Npc.HIT_WHEN_PLAYER_HITS),
 				fNpc.isShowNameTag(),
 				fNpc.getEquipment(),
 				fNpc.getHologram(),
@@ -147,35 +166,16 @@ public class FNPC {
 	 * @param npc an existed NPC object
 	 * @return A new NPC Builder
 	 */
-	public static NPC.Builder toNPC(FNPC npc) {
-		NPC.Builder npcBuilder = NPC.builder();
+	public static Npc.Builder<World, Player, ItemStack, Plugin> toNPC(FNPC npc) {
+		var npcBuilder = FantasyNPC.getInstance().getNpcPlatform().newNpcBuilder();
 
-		npcBuilder.location(npc.getLocation());
-		npcBuilder.lookAtPlayer(npc.isLookAtPlayer());
-		npcBuilder.imitatePlayer(npc.isImitatePlayer());
-		npcBuilder.spawnCustomizer((npcSpawn, viewPlayer) -> {
-			npcSpawn.metadata().queue(MetadataModifier.EntityMetadata.SKIN_LAYERS, true).send(viewPlayer);
-			npcSpawn.rotation().queueRotate(npc.getLocation().getYaw(), npc.getLocation().getPitch()).send(viewPlayer);
+		npcBuilder.position(BukkitPlatformUtil.positionFromBukkitLegacy(npc.getLocation()));
+		npcBuilder.flag(Npc.LOOK_AT_PLAYER, npc.isLookAtPlayer());
+		npcBuilder.flag(Npc.HIT_WHEN_PLAYER_HITS, npc.isImitatePlayer());
+		npcBuilder.flag(Npc.SNEAK_WHEN_PLAYER_SNEAKS, npc.isImitatePlayer());
 
-			EquipmentModifier equipModify = npcSpawn.equipment();
-			npc.getEquipment().forEach(equip -> {
-				ItemStack item = equip.getItem();
-				FEquipType type = equip.getType();
-				switch (type) {
-					case HELMET -> equipModify.queue(EnumWrappers.ItemSlot.HEAD, item).send(viewPlayer);
-					case CHEST_PLATE -> equipModify.queue(EnumWrappers.ItemSlot.CHEST, item).send(viewPlayer);
-					case LEGGINGS -> equipModify.queue(EnumWrappers.ItemSlot.LEGS, item).send(viewPlayer);
-					case BOOTS -> equipModify.queue(EnumWrappers.ItemSlot.FEET, item).send(viewPlayer);
-					case MAIN_HAND -> equipModify.queue(EnumWrappers.ItemSlot.MAINHAND, item).send(viewPlayer);
-					case OFF_HAND -> equipModify.queue(EnumWrappers.ItemSlot.OFFHAND, item).send(viewPlayer);
-				}
-			});
-		});
-
-		Profile profile = new Profile(npc.getUuid());
-		profile.setProperty(new Profile.Property("textures", npc.getSkin().getRaw(), npc.getSkin().getSignature()));
-		profile.setName("NPC_" + npc.getKey());
-		profile.complete();
+		Profile.Resolved profile = Profile.resolved("NPC_" + npc.getKey(), npc.getUuid(),
+				Set.of(ProfileProperty.property("textures", npc.getSkin().getRaw(), npc.getSkin().getSignature())));
 
 		npcBuilder.profile(profile);
 		return npcBuilder;

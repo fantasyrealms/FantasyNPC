@@ -1,6 +1,5 @@
 package net.fantasyrealms.fantasynpc.conversion.impl;
 
-import com.github.juliarn.npc.NPC;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.conversion.ConversionPlugin;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
@@ -65,7 +64,7 @@ public class ServerNPCConversion extends ConversionPlugin {
 
 					if (location.getWorld() == null) location.setWorld(Bukkit.getWorlds().get(0));
 
-					NPC npc = NPCUtils.createNPC(location, key, skin).join();
+					var npc = NPCUtils.createNPC(location, key, skin).join();
 					FNPC fNpc = FNPC.fromNPC(npc);
 					fNpc.setHologram(holo);
 					fNpc.setActions(actions);
@@ -110,7 +109,7 @@ public class ServerNPCConversion extends ConversionPlugin {
 					FNPCManager.save(fNpc);
 				});
 
-		FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+		FNPCManager.reload(FantasyNPC.getInstance().getNpcPlatform());
 		return nps;
 	}
 

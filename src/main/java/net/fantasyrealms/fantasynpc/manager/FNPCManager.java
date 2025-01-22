@@ -1,9 +1,10 @@
 package net.fantasyrealms.fantasynpc.manager;
 
 import com.cryptomorin.xseries.XMaterial;
-import com.github.juliarn.npc.NPC;
-import com.github.juliarn.npc.NPCPool;
-import com.github.juliarn.npc.profile.Profile;
+import com.github.juliarn.npclib.api.Npc;
+import com.github.juliarn.npclib.api.Platform;
+import com.github.juliarn.npclib.api.profile.Profile;
+import com.github.juliarn.npclib.bukkit.util.BukkitPlatformUtil;
 import gg.optimalgames.hologrambridge.HologramAPI;
 import gg.optimalgames.hologrambridge.hologram.Hologram;
 import lombok.Getter;
@@ -15,7 +16,10 @@ import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import net.fantasyrealms.fantasynpc.util.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,18 +33,19 @@ public class FNPCManager {
 	@Getter
 	private static Map<UUID, Hologram> holograms = new HashMap<>();
 
-	public static void loadNPC(NPCPool npcPool) {
+	public static void loadNPC(Platform<World, Player, ItemStack, Plugin> platform) {
 		FantasyNPC.getInstance().getNpcData().getNpcs().forEach((key, npc) -> {
-			loadNPC(npc, npcPool);
+			loadNPC(npc, platform);
 		});
 	}
 
-	public static NPC loadNPC(FNPC fNPC, NPCPool npcPool) {
+	public static Npc<World, Player, ItemStack, Plugin> loadNPC(FNPC fNPC, Platform<World, Player, ItemStack, Plugin> platform) {
 		FantasyNPC.debug("Loading NPC: %s (%s)".formatted(fNPC.getName(), fNPC.getUuid()));
-		NPC npc = FNPC.toNPC(fNPC).build(npcPool);
-		npcPool.getNpc(fNPC.getUuid()).ifPresent((npcResult) -> {
-			FantasyNPC.debug("NPC [%s] loaded with Entity ID: %s".formatted(fNPC.getName(), npcResult.getEntityId()));
-		});
+		var npc = FNPC.toNPC(fNPC).buildAndTrack();
+		var newNpc = platform.npcTracker().npcByUniqueId(fNPC.getUuid());
+		if (newNpc != null) {
+			FantasyNPC.debug("NPC [%s] loaded with Entity ID: %s".formatted(fNPC.getName(), newNpc.entityId()));
+		}
 		if (FantasyNPC.getInstance().isHologramEnabled() && !fNPC.getHologram().getLines().isEmpty()) {
 			FantasyNPC.debug("Loading NPC Holograms: %s with %s line(s)".formatted(fNPC.getName(), fNPC.getHologram().getLines().size()));
 			Hologram holo = HologramAPI.getConnector().createHologram(fNPC.getLocation().clone().add(0, fNPC.getHologram().getYHeight(), 0));
@@ -58,9 +63,9 @@ public class FNPCManager {
 		return npc;
 	}
 
-	public static void save(NPC npc) {
+	public static void save(Npc<World, Player, ItemStack, Plugin> npc) {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.put(npc.getProfile().getUniqueId().toString().replace("-", "").substring(0, 8), FNPC.fromNPC(npc));
+		newNPCs.put(npc.profile().uniqueId().toString().replace("-", "").substring(0, 8), FNPC.fromNPC(npc));
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
@@ -76,7 +81,7 @@ public class FNPCManager {
 
 	public static void addNPCActions(FNPC fNpc, FAction action) {
 		fNpc.getActions().add(action);
-		updateNPC(fNpc);
+//		updateNPC(fNpc);
 	}
 
 	public static FAction removeNPCAction(FNPC fNpc, int slot) {
@@ -84,7 +89,7 @@ public class FNPCManager {
 		if (slot > actions.size()) return null;
 		FAction removedAction = actions.remove(slot);
 
-		updateNPC(fNpc);
+//		updateNPC(fNpc);
 		return removedAction;
 	}
 
@@ -96,14 +101,14 @@ public class FNPCManager {
 	}
 
 	public static FNPC updateNPC(FNPC fNpc) {
-		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
+		var npcPlatform = FantasyNPC.getInstance().getNpcPlatform();
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
 
 		removeFromPool(fNpc.getUuid());
 		removeHolograms(fNpc.getUuid());
 		updateAllPlayerScoreboard();
 
-		NPC npc = loadNPC(fNpc, npcPool);
+		var npc = loadNPC(fNpc, npcPlatform);
 		FNPC newFNPC = FNPC.fromExist(fNpc, npc);
 
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
@@ -120,12 +125,12 @@ public class FNPCManager {
 	}
 
 	public static FNPC updateNPC(FNPC fNpc, UpdateType updateType) {
-		NPC.Builder npcBuilder = FNPC.toNPC(fNpc);
+		var npcBuilder = FNPC.toNPC(fNpc);
 
 		switch (updateType) {
 			case LOOK_AT_PLAYER -> fNpc.setLookAtPlayer(!fNpc.isLookAtPlayer());
 			case IMITATE_PLAYER -> fNpc.setImitatePlayer(!fNpc.isImitatePlayer());
-			case LOCATION -> npcBuilder.location(fNpc.getLocation());
+			case LOCATION -> npcBuilder.position(BukkitPlatformUtil.positionFromBukkitLegacy(fNpc.getLocation()));
 			case NAME_TAG -> fNpc.setShowNameTag(!fNpc.isShowNameTag());
 			case NAME -> fNpc.setName(fNpc.getName());
 		}
@@ -133,15 +138,18 @@ public class FNPCManager {
 		return updateNPC(fNpc);
 	}
 
-	public static void updateProfile(FNPC fNpc, Profile profile) {
-		NPCPool npcPool = FantasyNPC.getInstance().getNpcPool();
+	public static void updateProfile(FNPC fNpc, Profile.Resolved profile) {
+		var npcPlatform = FantasyNPC.getInstance().getNpcPlatform();
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		NPC npc = FNPC.toNPC(fNpc).profile(profile).build(npcPool);
+		var npcBuilder = FNPC.toNPC(fNpc);
+		npcBuilder.profile(profile);
+		var npc = npcBuilder.buildAndTrack();
 
-		npcPool.getNpc(fNpc.getUuid()).ifPresent((npcP) -> {
-			npcPool.removeNPC(npcP.getEntityId());
-			FantasyNPC.debug("[NPC UPDATE] Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), fNpc.getName(), fNpc.getUuid()));
-		});
+		var npcP = npcPlatform.npcTracker().npcByUniqueId(fNpc.getUuid());
+		if (npcP != null) {
+			npcP.unlink();
+			FantasyNPC.debug("[NPC UPDATE] Removed NPC [EID: %s]: %s (%s)".formatted(npcP.entityId(), fNpc.getName(), fNpc.getUuid()));
+		}
 
 		for (Map.Entry<String, FNPC> npcEntry : FantasyNPC.getInstance().getNpcData().getNpcs().entrySet()) {
 			FNPC oldNPC = npcEntry.getValue();
@@ -154,8 +162,8 @@ public class FNPCManager {
 	}
 
 	public static void clear() {
-		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
-			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+		for (Npc<World, Player, ItemStack, Plugin> npc : FantasyNPC.getInstance().getNpcPlatform().npcTracker().trackedNpcs()) {
+			npc.unlink();
 		}
 		holograms.values().forEach(Hologram::delete);
 		holograms.clear();
@@ -164,20 +172,20 @@ public class FNPCManager {
 		updateAllPlayerScoreboard();
 	}
 
-	public static void reload(NPCPool npcPool) {
-		for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
-			FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+	public static void reload(Platform<World, Player, ItemStack, Plugin> platform) {
+		for (Npc<World, Player, ItemStack, Plugin> npc : platform.npcTracker().trackedNpcs()) {
+			npc.unlink();
 		}
 		holograms.values().forEach(Hologram::delete);
 		holograms.clear();
 		ConfigManager.reloadNPCData();
-		loadNPC(npcPool);
+		loadNPC(platform);
 	}
 
-	public static void disable(NPCPool npcPool) {
+	public static void disable(Platform<World, Player, ItemStack, Plugin> platform) {
 		try {
-			for (NPC npc : FantasyNPC.getInstance().getNpcPool().getNPCs()) {
-				FantasyNPC.getInstance().getNpcPool().removeNPC(npc.getEntityId());
+			for (Npc<World, Player, ItemStack, Plugin> npc : platform.npcTracker().trackedNpcs()) {
+				npc.unlink();
 			}
 		} catch (Throwable ignored) {
 		}
@@ -198,10 +206,10 @@ public class FNPCManager {
 	}
 
 	public static void removeFromPool(UUID uuid) {
-		FantasyNPC.getInstance().getNpcPool().getNpc(uuid).ifPresent((npcP) -> {
-			FantasyNPC.getInstance().getNpcPool().removeNPC(npcP.getEntityId());
-			FantasyNPC.debug("Removed NPC [EID: %s]: %s (%s)".formatted(npcP.getEntityId(), npcP.getProfile().getName(), npcP.getProfile().getUniqueId()));
-		});
+		var npc = FantasyNPC.getInstance().getNpcPlatform().npcTracker().npcByUniqueId(uuid);
+		if (npc == null) return;
+		npc.unlink();
+		FantasyNPC.debug("Removed NPC [EID: %s]: %s (%s)".formatted(npc.entityId(), npc.profile().name(), npc.profile().uniqueId()));
 	}
 
 	public static boolean removeAndClearData(FNPC fNpc) {

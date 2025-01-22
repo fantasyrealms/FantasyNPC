@@ -1,6 +1,11 @@
 package net.fantasyrealms.fantasynpc;
 
-import com.github.juliarn.npc.NPCPool;
+import com.github.juliarn.npclib.api.NpcActionController;
+import com.github.juliarn.npclib.api.Platform;
+import com.github.juliarn.npclib.api.event.InteractNpcEvent;
+import com.github.juliarn.npclib.api.event.ShowNpcEvent;
+import com.github.juliarn.npclib.bukkit.BukkitPlatform;
+import com.github.juliarn.npclib.bukkit.protocol.BukkitProtocolAdapter;
 import de.exlll.configlib.YamlConfigurations;
 import gg.optimalgames.hologrambridge.HologramAPI;
 import gg.optimalgames.hologrambridge.HologramBridge;
@@ -13,7 +18,8 @@ import net.fantasyrealms.fantasynpc.constants.ConfigProperties;
 import net.fantasyrealms.fantasynpc.constants.Constants;
 import net.fantasyrealms.fantasynpc.conversion.ConversionManager;
 import net.fantasyrealms.fantasynpc.conversion.ConversionPlugin;
-import net.fantasyrealms.fantasynpc.event.NPCActionsListener;
+import net.fantasyrealms.fantasynpc.event.NPCInteractNpcListener;
+import net.fantasyrealms.fantasynpc.event.NPCShowListener;
 import net.fantasyrealms.fantasynpc.event.PlayerJoinListener;
 import net.fantasyrealms.fantasynpc.manager.ConfigManager;
 import net.fantasyrealms.fantasynpc.manager.FNPCManager;
@@ -22,6 +28,10 @@ import net.fantasyrealms.fantasynpc.objects.FNPC;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 import revxrsal.commands.exception.CommandErrorException;
@@ -31,7 +41,7 @@ import java.io.File;
 public class FantasyNPC extends JavaPlugin {
 
 	@Getter private static FantasyNPC instance;
-	@Getter private NPCPool npcPool;
+	@Getter private Platform<World, Player, ItemStack, Plugin> npcPlatform;
 	@Getter private BukkitCommandHandler commandHandler;
 	@Getter private FConfig pluginConfig;
 	@Setter @Getter private NPCData npcData;
@@ -94,15 +104,22 @@ public class FantasyNPC extends JavaPlugin {
 		if (!isHologramEnabled()) getLogger().warning("No hologram connector were found, hologram feature will be disable.");
 
 		getLogger().info("Loading NPCs...");
-		this.npcPool = NPCPool.builder(this)
-				.spawnDistance(pluginConfig.getNpc().getSpawnDistance())
-				.actionDistance(pluginConfig.getNpc().getActionDistance())
-				.tabListRemoveTicks(pluginConfig.getNpc().getTabListRemoveTicks())
+		this.npcPlatform = BukkitPlatform.bukkitNpcPlatformBuilder()
+				.debug(pluginConfig.isDebug())
+				.extension(this)
+				.packetFactory(BukkitProtocolAdapter.packetEvents())
+				.actionController(builder -> {
+					builder.flag(NpcActionController.SPAWN_DISTANCE, pluginConfig.getNpc().getSpawnDistance());
+					builder.flag(NpcActionController.IMITATE_DISTANCE, pluginConfig.getNpc().getActionDistance());
+					builder.flag(NpcActionController.TAB_REMOVAL_TICKS, pluginConfig.getNpc().getTabListRemoveTicks());
+				})
 				.build();
-		FNPCManager.loadNPC(npcPool);
+		var eventManager = npcPlatform.eventManager();
+		eventManager.registerEventHandler(ShowNpcEvent.class, new NPCShowListener());
+		eventManager.registerEventHandler(InteractNpcEvent.class, new NPCInteractNpcListener());
+		FNPCManager.loadNPC(npcPlatform);
 
 		Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
-		Bukkit.getPluginManager().registerEvents(new NPCActionsListener(), this);
 
 		getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
@@ -113,7 +130,7 @@ public class FantasyNPC extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		FNPCManager.disable(npcPool);
+		FNPCManager.disable(npcPlatform);
 		getServer().getMessenger().unregisterOutgoingPluginChannel(this);
 	}
 

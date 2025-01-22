@@ -236,7 +236,7 @@ public class FantasyNPCCommand {
 				throwable.printStackTrace();
 				return;
 			}
-			FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+			FNPCManager.reload(FantasyNPC.getInstance().getNpcPlatform());
 			actor.reply("&aSuccessfully converted &f%s &aNPCs!".formatted(list.size()));
 		});
 	}
@@ -244,7 +244,7 @@ public class FantasyNPCCommand {
 	@Subcommand({"reloadNPC"})
 	@Description("Reload NPC")
 	public void reloadNPC(BukkitCommandActor actor) {
-		FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+		FNPCManager.reload(FantasyNPC.getInstance().getNpcPlatform());
 		actor.reply("&aAll the NPCs has been reloaded.");
 	}
 
@@ -267,7 +267,7 @@ public class FantasyNPCCommand {
 						return;
 					}
 					FNPCManager.save(npc);
-					player.sendMessage(colorize("&aNPC &f%s &ahas been successfully created!").formatted(npc.getProfile().getName()));
+					player.sendMessage(colorize("&aNPC &f%s &ahas been successfully created!").formatted(npc.profile().name()));
 				})
 				.exceptionally((throwable -> {
 					throwable.printStackTrace();
@@ -287,7 +287,7 @@ public class FantasyNPCCommand {
 
 		FNPCManager.save(npc);
 		player.sendMessage(colorize("&aCopied NPC [&f%s&a] &afrom &f%s!".formatted(npc.getKey(), fnpc.getKey())));
-		FNPCManager.reload(FantasyNPC.getInstance().getNpcPool());
+		FNPCManager.reload(FantasyNPC.getInstance().getNpcPlatform());
 		player.sendMessage(colorize("&aReloaded all NPC."));
 	}
 

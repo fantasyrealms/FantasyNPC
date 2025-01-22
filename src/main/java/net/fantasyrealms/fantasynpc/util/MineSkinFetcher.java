@@ -1,7 +1,7 @@
 package net.fantasyrealms.fantasynpc.util;
 
 import cc.happyareabean.mojangapi.MojangAPI;
-import com.github.juliarn.npc.profile.Profile;
+import com.github.juliarn.npclib.api.profile.ProfileProperty;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
@@ -18,7 +18,7 @@ public class MineSkinFetcher {
 	private static final String MINESKIN_API = "https://api.mineskin.org/get/uuid/";
 	private static final String MINESKIN_ID_API = "https://api.mineskin.org/get/id/";
 
-	public static CompletableFuture<Profile.Property> fetchSkin(String input) {
+	public static CompletableFuture<ProfileProperty> fetchSkin(String input) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				StringBuilder builder = new StringBuilder();
@@ -43,7 +43,7 @@ public class MineSkinFetcher {
 				String value = textures.get("value").getAsString();
 				String signature = textures.get("signature").getAsString();
 
-				return new Profile.Property("textures", value, signature);
+				return ProfileProperty.property("textures", value, signature);
 			} catch (IOException exception) {
 				FantasyNPC.debug("Could not fetch skin: %s! Message: %s".formatted(input, exception.getMessage()));
 				exception.printStackTrace();
