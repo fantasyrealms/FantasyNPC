@@ -13,6 +13,7 @@ import net.fantasyrealms.fantasynpc.constants.UpdateType;
 import net.fantasyrealms.fantasynpc.objects.FAction;
 import net.fantasyrealms.fantasynpc.objects.FEquip;
 import net.fantasyrealms.fantasynpc.objects.FNPC;
+import net.fantasyrealms.fantasynpc.util.NPCUtils;
 import net.fantasyrealms.fantasynpc.util.PlayerUtils;
 import net.fantasyrealms.fantasynpc.util.Utils;
 import org.bukkit.Bukkit;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -65,7 +67,7 @@ public class FNPCManager {
 
 	public static void save(Npc<World, Player, ItemStack, Plugin> npc) {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.put(npc.profile().uniqueId().toString().replace("-", "").substring(0, 8), FNPC.fromNPC(npc));
+		newNPCs.put(NPCUtils.getKeyFromUUID(npc.profile().uniqueId()), FNPC.fromNPC(npc));
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
@@ -73,7 +75,7 @@ public class FNPCManager {
 
 	public static void save(FNPC fNpc) {
 		Map<String, FNPC> newNPCs = new LinkedHashMap<>(FantasyNPC.getInstance().getNpcData().getNpcs());
-		newNPCs.put(fNpc.getUuid().toString().replace("-", "").substring(0, 8), fNpc);
+		newNPCs.put(NPCUtils.getKeyFromUUID(fNpc.getUuid()), fNpc);
 		FantasyNPC.getInstance().getNpcData().setNpcs(newNPCs);
 		ConfigManager.saveNPCData();
 		updateAllPlayerScoreboard();
@@ -173,9 +175,10 @@ public class FNPCManager {
 	}
 
 	public static void reload(Platform<World, Player, ItemStack, Plugin> platform) {
-		for (Npc<World, Player, ItemStack, Plugin> npc : platform.npcTracker().trackedNpcs()) {
-			npc.unlink();
-		}
+		new ArrayList<>(platform.npcTracker().trackedNpcs()).forEach(npc -> {
+			var npcById = platform.npcTracker().npcById(npc.entityId());
+			if (npcById != null) npcById.unlink();
+		});
 		holograms.values().forEach(Hologram::delete);
 		holograms.clear();
 		ConfigManager.reloadNPCData();
@@ -184,9 +187,10 @@ public class FNPCManager {
 
 	public static void disable(Platform<World, Player, ItemStack, Plugin> platform) {
 		try {
-			for (Npc<World, Player, ItemStack, Plugin> npc : platform.npcTracker().trackedNpcs()) {
-				npc.unlink();
-			}
+			platform.npcTracker().trackedNpcs().forEach(npc -> {
+				var npcById = platform.npcTracker().npcById(npc.entityId());
+				if (npcById != null) npcById.unlink();
+			});
 		} catch (Throwable ignored) {
 		}
 		holograms.values().forEach(Hologram::delete);
