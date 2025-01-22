@@ -57,6 +57,8 @@ repositories {
     maven { url = "https://repo.fantasyrealms.net/releases" }
     maven { url = 'https://repo.jaims.dev/repository/maven-public/' }
     maven { url = "https://repo.dmulloy2.net/repository/public/" }
+    maven { url = "https://repo.papermc.io/repository/maven-public/" }
+    maven { url = "https://repo.codemc.io/repository/maven-releases/" }
 }
 
 ext {
@@ -71,13 +73,19 @@ dependencies {
 
     // Other dependencies
     compileOnly 'me.clip:placeholderapi:2.11.6'
-    compileOnly 'com.comphenix.protocol:ProtocolLib:4.8.0'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'de.exlll:configlib-yaml:4.5.0'
-    implementation 'com.github.juliarn:npc-lib:2.6-RELEASE'
-    implementation('com.github.cryptomorin:XSeries:9.3.1') { transitive = false }
+
+    // NPC-Lib
+    implementation 'io.github.juliarn:npc-lib-api:3.0.0-beta10'
+    implementation 'io.github.juliarn:npc-lib-common:3.0.0-beta10'
+    implementation 'io.github.juliarn:npc-lib-bukkit:3.0.0-beta10'
+
+    implementation('com.github.cryptomorin:XSeries:13.0.0') { transitive = false }
+
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
+
     implementation 'com.github.Chubbyduck1:HologramBridge:15ad8f66a6'
     implementation "cc.happyareabean:MojangAPI:2.0.0"
 
@@ -119,37 +127,6 @@ shadowJar {
     archiveClassifier.set('')
 }
 
-tasks.register('cleanPlugin') {
-    group 'deploy'
-    description 'Cleans the plugin in the working directory up'
-
-    try {
-        delete 'working/plugins/' + shadowJar.getArchiveFileName().get() + '.jar'
-    } catch (ignored) {
-
-    }
-}
-
-tasks.register('deploy', Copy) {
-    dependsOn['cleanPlugin', 'jar']
-    group 'deploy'
-    description 'Exports you plugin to the plugin directory in your test server'
-
-    from shadowJar
-    into 'working/plugins'
-}
-
-tasks.register('setupServer') {
-    group 'server'
-    description 'Downloads the server jar'
-
-    def server = new File('working/server.jar')
-
-    if (server.exists()) {
-        return
-    }
-}
-
 def versionWithGit = "${project.version}-${gitCommit}"
 
 tasks.processResources {
@@ -175,18 +152,46 @@ tasks.named('shadowJar', ShadowJar) {
     relocationPrefix project.group + ".fantasynpc.libs"
 }
 
-def runDirectoryDir = project.hasProperty('runPaper.runDirectory') ? project.getProperty('runPaper.runDirectory') : "${project.rootProject.projectDir}/working"
-
 tasks {
     runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.8.8")
-        runDirectory.set(file(runDirectoryDir))
-        downloadPlugins {
-            url("https://hangarcdn.papermc.io/plugins/ViaVersion/ViaVersion/versions/4.8.1/PAPER/ViaVersion-4.8.1.jar")
-            url("https://hangarcdn.papermc.io/plugins/dmulloy2/ProtocolLib/versions/5.1.0/PAPER/ProtocolLib.jar")
+
+        var SERVER_VER = ""
+
+        if (System.getenv("SERV_VER") != null) {
+            SERVER_VER = System.getenv("SERV_VER")
         }
+
+        if (System.getenv("SERV_SLIME") == "1") {
+            jvmArgs("-javaagent:${System.getenv("SERV_SLIME_JAR")}")
+        }
+
+        if (System.getenv("SERV_JAR") != null) {
+            runJar(runDirectory.file(System.getenv("SERV_JAR")))
+        }
+
+        if (!SERVER_VER.isEmpty()) {
+            minecraftVersion(SERVER_VER)
+            runDirectory(file("${project.projectDir}/working/${SERVER_VER}"))
+            return
+        }
+
+        if (System.getenv("SERV_ENV") == "MODERN") {
+            minecraftVersion("1.21.4")
+            runDirectory(file("${project.projectDir}/working/modern"))
+        } else {
+            minecraftVersion("1.8.8")
+            runDirectory(file("${project.projectDir}/working/legacy"))
+        }
+
     }
+}
+
+int SERV_JAVA = System.getenv("SERV_JAVA") == null ? 21 : System.getenv("SERV_JAVA") as int
+
+tasks.withType(xyz.jpenilla.runtask.task.AbstractRun) {
+    javaLauncher = javaToolchains.launcherFor {
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(SERV_JAVA)
+    }
+    jvmArgs "-XX:+AllowEnhancedClassRedefinition"
 }
