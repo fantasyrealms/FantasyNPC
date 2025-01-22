@@ -1,11 +1,10 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'kr.entree.spigradle' version '2.4.3'
+    id("com.gradleup.shadow") version "8.3.5"
     id 'net.kyori.blossom' version "2.1.0"
     id 'net.kyori.indra.git' version "3.1.3"
-    id "xyz.jpenilla.run-paper" version "2.2.2"
+    id "xyz.jpenilla.run-paper" version "2.3.1"
 }
 
 group 'net.fantasyrealms'
@@ -118,16 +117,6 @@ publishing {
 
 shadowJar {
     archiveClassifier.set('')
-}
-
-spigot {
-    // The 'name' and 'version' will be set to project.version and project.name,
-    // But we may set those manually.
-    apiVersion '1.13'
-    excludeLibraries = ['*']
-    depends 'ProtocolLib'
-    softDepends 'PlaceholderAPI', 'DecentHolograms', 'Holograms', 'HolographicDisplays', 'CMI'
-    authors 'HappyAreaBean'
 }
 
 tasks.register('cleanPlugin') {
