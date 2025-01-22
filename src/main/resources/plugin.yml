@@ -1,0 +1,7 @@
+name: FantasyNPC
+version: ${pluginVersion}
+main: net.fantasyrealms.fantasynpc.FantasyNPC
+authors: 'HappyAreaBean'
+apiVersion: 1.13
+depends: ['ProtocolLib']
+softDepends: ['PlaceholderAPI', 'DecentHolograms', 'Holograms', 'HolographicDisplays', 'CMI']
