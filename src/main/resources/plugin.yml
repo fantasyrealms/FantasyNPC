@@ -2,5 +2,5 @@ name: FantasyNPC
 version: ${pluginVersion}
 main: net.fantasyrealms.fantasynpc.FantasyNPC
 author: 'HappyAreaBean'
-apiVersion: 1.13
+api-version: 1.13
 softDepends: ['PlaceholderAPI', 'DecentHolograms', 'Holograms', 'HolographicDisplays', 'CMI', 'ProtocolLib']
