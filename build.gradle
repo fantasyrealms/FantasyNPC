@@ -79,7 +79,12 @@ dependencies {
     // NPC-Lib
     implementation 'io.github.juliarn:npc-lib-api:3.0.0-beta10'
     implementation 'io.github.juliarn:npc-lib-common:3.0.0-beta10'
-    implementation 'io.github.juliarn:npc-lib-bukkit:3.0.0-beta10'
+    implementation('io.github.juliarn:npc-lib-bukkit:3.0.0-beta10') {
+        exclude(group: "com.github.retrooper", module: "packetevents-spigot")
+    }
+
+    // PacketEvents
+    implementation("com.github.retrooper:packetevents-spigot:2.7.0")
 
     implementation('com.github.cryptomorin:XSeries:13.0.0') { transitive = false }
 
