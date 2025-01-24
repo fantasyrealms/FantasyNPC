@@ -3,6 +3,8 @@ package net.fantasyrealms.fantasynpc.util;
 import cc.happyareabean.exceptions.APIException;
 import cc.happyareabean.mojangapi.MojangAPI;
 import com.github.juliarn.npclib.api.Npc;
+import com.github.juliarn.npclib.api.Platform;
+import com.github.juliarn.npclib.api.Position;
 import com.github.juliarn.npclib.api.profile.Profile;
 import com.github.juliarn.npclib.api.profile.ProfileProperty;
 import com.github.juliarn.npclib.bukkit.util.BukkitPlatformUtil;
@@ -88,7 +90,7 @@ public class NPCUtils {
 	public static CompletableFuture<Npc<World, Player, ItemStack, Plugin>> createNPC(Location location, String name, String skin) {
 		return createProfile(name, skin).thenApply((profile) -> {
 			var npcBuilder = FantasyNPC.getInstance().getNpcPlatform().newNpcBuilder();
-			npcBuilder.position(BukkitPlatformUtil.positionFromBukkitLegacy(location));
+			npcBuilder.position(NPCUtils.toNPCPosition(FantasyNPC.getInstance().getNpcPlatform(), location));
 			npcBuilder.profile(profile);
 			return npcBuilder.buildAndTrack();
 		});
@@ -138,4 +140,10 @@ public class NPCUtils {
 	public static String getKeyFromUUID(UUID uuid) {
 		return uuid.toString().replace("-", "").substring(0, 8);
 	}
+
+	public static Position toNPCPosition(Platform platform, Location location) {
+		return FantasyNPC.getInstance().getNpcPlatform().versionAccessor()
+				.atLeast(1, 16, 5) ? BukkitPlatformUtil.positionFromBukkitModern(location) : BukkitPlatformUtil.positionFromBukkitLegacy(location);
+	}
+
 }

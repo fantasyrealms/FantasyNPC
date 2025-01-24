@@ -4,7 +4,6 @@ import com.cryptomorin.xseries.XMaterial;
 import com.github.juliarn.npclib.api.Npc;
 import com.github.juliarn.npclib.api.Platform;
 import com.github.juliarn.npclib.api.profile.Profile;
-import com.github.juliarn.npclib.bukkit.util.BukkitPlatformUtil;
 import gg.optimalgames.hologrambridge.HologramAPI;
 import gg.optimalgames.hologrambridge.hologram.Hologram;
 import lombok.Getter;
@@ -132,7 +131,7 @@ public class FNPCManager {
 		switch (updateType) {
 			case LOOK_AT_PLAYER -> fNpc.setLookAtPlayer(!fNpc.isLookAtPlayer());
 			case IMITATE_PLAYER -> fNpc.setImitatePlayer(!fNpc.isImitatePlayer());
-			case LOCATION -> npcBuilder.position(BukkitPlatformUtil.positionFromBukkitLegacy(fNpc.getLocation()));
+			case LOCATION -> npcBuilder.position(NPCUtils.toNPCPosition(FantasyNPC.getInstance().getNpcPlatform(), fNpc.getLocation()));
 			case NAME_TAG -> fNpc.setShowNameTag(!fNpc.isShowNameTag());
 			case NAME -> fNpc.setName(fNpc.getName());
 		}

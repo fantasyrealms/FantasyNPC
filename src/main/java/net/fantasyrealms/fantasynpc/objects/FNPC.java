@@ -3,7 +3,6 @@ package net.fantasyrealms.fantasynpc.objects;
 import com.github.juliarn.npclib.api.Npc;
 import com.github.juliarn.npclib.api.profile.Profile;
 import com.github.juliarn.npclib.api.profile.ProfileProperty;
-import com.github.juliarn.npclib.bukkit.util.BukkitPlatformUtil;
 import de.exlll.configlib.Configuration;
 import de.exlll.configlib.SerializeWith;
 import lombok.AllArgsConstructor;
@@ -11,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.fantasyrealms.fantasynpc.FantasyNPC;
 import net.fantasyrealms.fantasynpc.config.converter.LocationStringConverter;
+import net.fantasyrealms.fantasynpc.util.NPCUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -169,7 +169,7 @@ public class FNPC {
 	public static Npc.Builder<World, Player, ItemStack, Plugin> toNPC(FNPC npc) {
 		var npcBuilder = FantasyNPC.getInstance().getNpcPlatform().newNpcBuilder();
 
-		npcBuilder.position(BukkitPlatformUtil.positionFromBukkitLegacy(npc.getLocation()));
+		npcBuilder.position(NPCUtils.toNPCPosition(FantasyNPC.getInstance().getNpcPlatform(), npc.getLocation()));
 		npcBuilder.flag(Npc.LOOK_AT_PLAYER, npc.isLookAtPlayer());
 		npcBuilder.flag(Npc.HIT_WHEN_PLAYER_HITS, npc.isImitatePlayer());
 		npcBuilder.flag(Npc.SNEAK_WHEN_PLAYER_SNEAKS, npc.isImitatePlayer());
