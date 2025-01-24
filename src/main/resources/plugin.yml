@@ -3,4 +3,4 @@ version: ${pluginVersion}
 main: net.fantasyrealms.fantasynpc.FantasyNPC
 author: 'HappyAreaBean'
 api-version: 1.13
-softDepends: ['PlaceholderAPI', 'DecentHolograms', 'Holograms', 'HolographicDisplays', 'CMI', 'ProtocolLib']
+softdepend: [PlaceholderAPI, DecentHolograms, Holograms, HolographicDisplays, CMI]
